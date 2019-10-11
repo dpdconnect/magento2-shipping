@@ -1,0 +1,47 @@
+{
+    "name": "dpdconnect/magento2-shipping",
+    "description": "DPD Connect - Magento2 Shipping",
+    "require": {
+        "php": ">=7.0.13",
+        "setasign/fpdi-fpdf": "2.1",
+        "magento/framework": "^100.1.0,<=100.1.16|^101.0.0,<=101.0.7|^102.0.0",
+        "dpdconnect/php-sdk": "^1.0",
+        "php-http/guzzle6-adapter": "^2.0",
+        "php-http/message": "*"
+    },
+    "type": "magento2-module",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "DPD",
+            "email": "pluginsupport@dpd.nl",
+            "homepage": "http://www.dpd.nl"
+        }
+    ],
+    "support": {
+        "email": "pluginsupport@dpd.nl",
+        "issues": "http://www.dpd.nl/"
+    },
+    "homepage": "https://www.dpd.com/nl/business_customers/hulp_en_tools/e_commerce/magento",
+    "keywords": ["dpd", "dpd parcelservice", "Magento2"],
+    "minimum-stability": "stable",
+    "autoload": {
+        "files": [
+            "registration.php"
+        ],
+        "psr-4": {
+            "DpdConnect\\Shipping\\": ""
+        }
+    },
+    "require-dev": {
+        "object-calisthenics/phpcs-calisthenics-rules": "^3.0",
+        "magento/marketplace-eqp": "^2.0",
+        "overtrue/phplint": "^1.1"
+    },
+    "repositories": {
+        "magento": {
+            "type": "composer",
+            "url": "https://repo.magento.com/"
+        }
+    }
+}

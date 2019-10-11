@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+ This file is part of the Magento 2 Shipping module of DPD Nederland B.V.
+
+ Copyright (C) 2019  DPD Nederland B.V.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="product_attribute" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1"
+           showInStore="0">
+        <label>Product attributes</label>
+        <field id="hs_code" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Harmonized System code</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
+            <comment>The product Harmonized System code</comment>
+        </field>
+
+        <field id="dimension_length" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Product Length</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
+            <comment>The product length attribute</comment>
+        </field>
+
+        <field id="dimension_width" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Product Width</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
+            <comment>The product width attribute</comment>
+        </field>
+
+        <field id="dimension_height" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Product Height</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
+            <comment>The product height attribute</comment>
+        </field>
+
+        <field id="dimension_depth" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Product Depth</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
+            <comment>The product depth attribute</comment>
+        </field>
+    </group>
+</include>

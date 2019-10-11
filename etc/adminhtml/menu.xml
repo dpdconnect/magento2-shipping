@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Backend:etc/menu.xsd">
+    <menu>
+        <add id="DpdConnect_Shipping::dpd" title="DPD" translate="title" module="Magento_Sales" sortOrder="100" parent="Magento_Sales::sales" resource="DpdConnect_Shipping::dpd_menu" />
+        <add id="DpdConnect_Shipping::batch" title="Batches" translate="title" module="DpdConnect_Shipping" sortOrder="1" parent="DpdConnect_Shipping::dpd" action="dpd_shipping/batch/index" resource="DpdConnect_Shipping::batch_menu"/>
+        <add id="DpdConnect_Shipping::label" title="Labels" translate="title" module="DpdConnect_Shipping" sortOrder="2" parent="DpdConnect_Shipping::dpd" action="dpd_shipping/label/index" resource="DpdConnect_Shipping::label_menu"/>
+    </menu>
+</config>

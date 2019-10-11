@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<!--
+ This file is part of the Magento 2 Shipping module of DPD Nederland B.V.
+
+ Copyright (C) 2019  DPD Nederland B.V.
+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+
+ You should have received a copy of the GNU General Public License
+ along with this program.  If not, see <https://www.gnu.org/licenses/>.
+-->
+<include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
+    <group id="advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
+           showInStore="1">
+        <label>Advanced</label>
+        <field id="customs_content_type" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Default Content Type (Non Domestic)</label>
+            <comment>Whether to use Documents or NonDocuments service for non domestic shipments. (Shipments within the EU are classed as domestic)</comment>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\ContentType</source_model>
+        </field>
+        <field id="include_return_label" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Include return label</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>Print a Return label at the same time as the shipping label</comment>
+        </field>
+        <field id="picqer_mode" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Picqer mode</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>If you enable this option the DPD Parcelshop name will be added to the company field instead of the first and last name.</comment>
+        </field>
+        <field id="save_label_file" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Save labels as file</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+        <field id="label_path" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Store labels in</label>
+            <depends>
+                <field id="dpdshipping/advanced/save_label_file">1</field>
+            </depends>
+            <comment>The default directory is '/var/dpd_labels' in your Magento directory. Use full path if you want to use a custom directory.</comment>
+        </field>
+        <field id="print_phone_number" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Print phone number on label</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+        <field id="print_order_id" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Print order Id on label</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
+    </group>
+</include>
