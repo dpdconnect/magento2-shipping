@@ -10,6 +10,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Filesystem\Io\File;
 use Magento\Shipping\Model\Shipping\LabelGenerator;
 use Magento\Ui\Component\MassAction\Filter;
 
@@ -31,6 +32,10 @@ class MassDownload extends Action
      * @var Data
      */
     private $dataHelper;
+    /**
+     * @var File
+     */
+    private $filesystem;
 
     /**
      * MassDownload constructor.
@@ -39,19 +44,22 @@ class MassDownload extends Action
      * @param FileFactory $fileFactory
      * @param Data $dataHelper
      * @param ShipmentLabelCollectionFactory $shipmentLabelCollectionFactory
+     * @param File $filesystem
      */
     public function __construct(
         Context $context,
         Filter $filter,
         FileFactory $fileFactory,
         Data $dataHelper,
-        ShipmentLabelCollectionFactory $shipmentLabelCollectionFactory
+        ShipmentLabelCollectionFactory $shipmentLabelCollectionFactory,
+        File $filesystem
     ) {
         parent::__construct($context);
         $this->shipmentLabelCollectionFactory = $shipmentLabelCollectionFactory;
         $this->filter = $filter;
         $this->fileFactory = $fileFactory;
         $this->dataHelper = $dataHelper;
+        $this->filesystem = $filesystem;
     }
 
     /**
@@ -69,15 +77,20 @@ class MassDownload extends Action
         $labelPDFs = [];
 
         foreach ($collection as $shipmentLabel) {
+            if ($shipmentLabel->getLabel() == '') {
+                $content = $this->filesystem->read($shipmentLabel->getLabelPath());
+            } else {
+                $content = $shipmentLabel->getLabel();
+            }
 
-            $labelPDFs[] = $shipmentLabel->getLabel();
+            $labelPDFs[] = $content;
         }
 
         $resultPDF = $this->dataHelper->combinePDFFiles($labelPDFs);
 
         return $this->fileFactory->create(
             'DPD Shipping Labels.pdf',
-            $resultPDF->render(),
+            $resultPDF,
             DirectoryList::VAR_DIR,
             'application/pdf'
         );

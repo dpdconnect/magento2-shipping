@@ -9,6 +9,7 @@ use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Filesystem\Io\File;
 
 class Download extends Action
 {
@@ -20,21 +21,28 @@ class Download extends Action
      * @var FileFactory
      */
     private $fileFactory;
+    /**
+     * @var File
+     */
+    private $filesystem;
 
     /**
      * Download constructor.
      * @param Context $context
      * @param ShipmentLabelFactory $shipmentLabelFactory
      * @param FileFactory $fileFactory
+     * @param File $filesystem
      */
     public function __construct(
         Context $context,
         ShipmentLabelFactory $shipmentLabelFactory,
-        FileFactory $fileFactory
+        FileFactory $fileFactory,
+        File $filesystem
     ) {
         parent::__construct($context);
         $this->shipmentLabelFactory = $shipmentLabelFactory;
         $this->fileFactory = $fileFactory;
+        $this->filesystem = $filesystem;
     }
 
     /**
@@ -50,11 +58,17 @@ class Download extends Action
         $shipmentLabel = $this->shipmentLabelFactory->create();
         $shipmentLabel->load($entityId);
 
+        if ($shipmentLabel->getLabel() == '') {
+            $content = $this->filesystem->read($shipmentLabel->getLabelPath());
+        } else {
+            $content = $shipmentLabel->getLabel();
+        }
+
         $labelName = sprintf('DPD %s-%s.pdf', $shipmentLabel->getOrderIncrementId(), $shipmentLabel->getOrderId());
 
         return $this->fileFactory->create(
             $labelName,
-            $shipmentLabel->getLabel(),
+            $content,
             DirectoryList::VAR_DIR,
             'application/pdf'
         );

@@ -20,13 +20,19 @@
 namespace DpdConnect\Shipping\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use DpdConnect\Sdk\Objects\ObjectFactory;
+use DpdConnect\Sdk\Objects\MetaData;
 use DpdConnect\Sdk\ClientBuilder;
 use DpdConnect\Sdk\Client;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Encryption\Encryptor;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\Framework\Module\ModuleListInterface;
 
 class DPDClient extends AbstractHelper
 {
+    const MODULE_NAME = 'DpdConnect_Shipping';
+
     /**
      * @var DpdSettings
      */
@@ -35,20 +41,34 @@ class DPDClient extends AbstractHelper
      * @var Encryptor
      */
     private $crypt;
+    /**
+     * @var ProductMetadataInterface
+     */
+    private $productMetadata;
+    /**
+     * @var ModuleListInterface
+     */
+    private $moduleList;
 
     /**
      * DPDClient constructor.
      * @param Context $context
      * @param DpdSettings $dpdSettings
      * @param Encryptor $crypt
+     * @param ProductMetadataInterface $productMetadata
+     * @param ModuleListInterface $moduleList
      */
     public function __construct(
         Context $context,
         DpdSettings $dpdSettings,
-        Encryptor $crypt
+        Encryptor $crypt,
+        ProductMetadataInterface $productMetadata,
+        ModuleListInterface $moduleList
     ) {
         $this->dpdSettings = $dpdSettings;
         $this->crypt = $crypt;
+        $this->productMetadata = $productMetadata;
+        $this->moduleList = $moduleList;
         parent::__construct($context);
     }
 
@@ -60,7 +80,14 @@ class DPDClient extends AbstractHelper
     {
         // TODO: Add URL to the ClientBuilder
         $url = Client::ENDPOINT;
-        $clientBuiler = new ClientBuilder($url);
+        $pluginVersion = $this->moduleList
+            ->getOne(self::MODULE_NAME)['setup_version'];
+
+        $clientBuiler = new ClientBuilder($url, ObjectFactory::create(MetaData::class, [
+            'webshopType' => $this->productMetadata->getName() . ' ' . $this->productMetadata->getEdition(),
+            'webshopVersion' => $this->productMetadata->getVersion(),
+            'pluginVersion' => $pluginVersion,
+        ]));
 
         return $clientBuiler->buildAuthenticatedByPassword(
             $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME),
