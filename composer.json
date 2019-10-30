@@ -4,7 +4,7 @@
     "require": {
         "php": ">=7.0.13",
         "setasign/fpdi-fpdf": "2.1",
-        "magento/framework": "^100.1.0,<=100.1.16|^101.0.0,<=101.0.7|^102.0.0",
+        "magento/framework": "^100.0|^101.0|^102.0",
         "dpdconnect/php-sdk": "^1.0",
         "php-http/guzzle6-adapter": "^2.0",
         "php-http/message": "*"
