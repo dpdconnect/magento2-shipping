@@ -192,9 +192,13 @@ class OrderConvertService extends AbstractHelper
         $parcels = [];
 
         foreach ($packages as $package) {
-            $unit = new \Zend_Measure_Weight($package['weight'], $package['weight_units']);
-            $weight = $unit->convertTo(\Zend_Measure_Weight::KILOGRAM) * 100;
 
+            $weight = floatval($package['weight'] ?? $package['params']['weight'] ?? 0);
+            $unit = $package['weight_units'] ?? $package['params']['weight_units'] ?? \Zend_Measure_Weight::KILOGRAM;
+
+            $unit = new \Zend_Measure_Weight($weight, $unit);
+            $unit->convertTo(\Zend_Measure_Weight::KILOGRAM, 2);
+            $weight = round(floatval($unit->getValue(2)) * 100, 0);
             $parcels[] = [
                 'customerReferences' => [
                     ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID) ? $order->getIncrementId() : ''),
@@ -203,7 +207,6 @@ class OrderConvertService extends AbstractHelper
                 'weight' => (int)$weight,
             ];
         }
-
         return $parcels;
     }
 
@@ -260,7 +263,8 @@ class OrderConvertService extends AbstractHelper
 
         // The customs/packages popup when creating a new shipment is the only way to have multiple parcels for a single
         // shipment
-        if ($useCustoms) {
+
+        if (is_array($packages)) {
             $shipment['parcels'] = $this->addParcelsFromPackages($order, $packages);
         } else {
             $shipment['parcels'] = $this->addParcels($order, $isReturn, 1);

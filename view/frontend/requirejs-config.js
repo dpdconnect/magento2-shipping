@@ -22,6 +22,9 @@ var config = {
             'Mageplaza_Osc/js/view/shipping': {
                 'DpdConnect_Shipping/js/view/mageplaza-osc-shipping-mixin': true
             },
+			'Aheadworks_OneStepCheckout/js/view/shipping-method': {
+                'DpdConnect_Shipping/js/view/aheadworks-onestepcheckout-shipping-method-mixin': true
+            },
             'Magento_Checkout/js/action/set-shipping-information': {
                 'DpdConnect_Shipping/js/model/set-shipping-information-mixin': true
             }

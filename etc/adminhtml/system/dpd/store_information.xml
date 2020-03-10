@@ -28,26 +28,31 @@
         <field id="name" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Name</label>
+            <validate>required-entry</validate>
         </field>
 
         <field id="street" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Street</label>
+            <validate>required-entry</validate>
         </field>
 
         <field id="house_number" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>House number</label>
+            <validate>required-entry</validate>
         </field>
 
         <field id="zip_code" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Zip code</label>
+            <validate>required-entry</validate>
         </field>
 
         <field id="city" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>City</label>
+            <validate>required-entry</validate>
         </field>
         <field id="country" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
@@ -57,10 +62,12 @@
         <field id="phone" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Store phone</label>
+            <validate>required-entry</validate>
         </field>
         <field id="email" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Store E-Mail</label>
+            <validate>required-entry</validate>
         </field>
         <field id="vat_number" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">

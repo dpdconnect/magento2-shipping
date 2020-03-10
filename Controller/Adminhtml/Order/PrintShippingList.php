@@ -19,6 +19,7 @@
  */
 namespace DpdConnect\Shipping\Controller\Adminhtml\Order;
 
+use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 use Magento\Framework\Controller\ResultFactory;
@@ -32,7 +33,7 @@ use Magento\Framework\View\Result\PageFactory;
 use \DpdConnect\Shipping\Model\ShipmentLabelFactory;
 use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
 
-class printShippingList extends \Magento\Backend\App\Action
+class PrintShippingList extends \Magento\Backend\App\Action
 {
     /**
      * @var \Magento\Ui\Component\MassAction\Filter
@@ -63,6 +64,10 @@ class printShippingList extends \Magento\Backend\App\Action
      * @var \DpdConnect\Shipping\Model\ShipmentLabelFactory
      */
     private $shipmentLabelFactory;
+    /**
+     * @var DpdSettings
+     */
+    private $dpdSettings;
 
     /**
      * @param Context $context
@@ -72,6 +77,7 @@ class printShippingList extends \Magento\Backend\App\Action
      * @param ShipmentLabelFactory $shipmentLabelFactory
      * @param PageFactory $pageFactory
      * @param ShipmentLabelService $predictService
+     * @param DpdSettings $dpdSettings
      */
     public function __construct(
         Context $context,
@@ -80,7 +86,8 @@ class printShippingList extends \Magento\Backend\App\Action
         \DpdConnect\Shipping\Helper\Data $dataHelper,
         ShipmentLabelFactory $shipmentLabelFactory,
         PageFactory $pageFactory,
-        ShipmentLabelService $predictService
+        ShipmentLabelService $predictService,
+        DpdSettings $dpdSettings
     ) {
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
@@ -90,6 +97,7 @@ class printShippingList extends \Magento\Backend\App\Action
         $this->predictService = $predictService;
 
         parent::__construct($context);
+        $this->dpdSettings = $dpdSettings;
     }
 
     public function execute()
@@ -113,17 +121,21 @@ class printShippingList extends \Magento\Backend\App\Action
                     ->addFieldToFilter('is_return', ["eq", '0']);
 
                 foreach ($shipmentLabels as $shipmentLabel) {
-                    $paracelNumbers = unserialize($shipmentLabel->getLabelNumbers());
+                    $parcelNumbers = [];
+                    if($this->isSerialized($shipmentLabel->getLabelNumbers())) {
+                        $parcelNumbers = unserialize($shipmentLabel->getLabelNumbers());
+                    }
+                    foreach ($parcelNumbers as $parcelData) {
 
-                    foreach ($paracelNumbers as $paracelData) {
                         $count++;
                         $orders["list"][] = [
                             "count" => $count,
-                            "parcelLabelNumber" => $paracelData['parcel_number'],
-                            "weight" => round($paracelData['weight'], 2)."g",
+                            "parcelLabelNumber" => $parcelData['parcel_number'],
+                            // Weight is stored in decagram
+                            "weight" => round($parcelData['weight'] * 10, 2)."g",
                             "carrierName" => $order->getShippingDescription(),
                             "customerName" => $order->getShippingAddress()->getName(),
-                            "address" => implode($order->getShippingAddress()->getStreet(), ' '),
+                            "address" => implode(' ', $order->getShippingAddress()->getStreet()),
                             "zipCode" => $order->getShippingAddress()->getPostcode(),
                             "city" => $order->getShippingAddress()->getCity(),
                             "referenceNumber" => $order->getIncrementId(),
@@ -133,13 +145,25 @@ class printShippingList extends \Magento\Backend\App\Action
                 }
             }
 
-
             $resultPage = $this->resultPageFactory->create();
-            $blockInstance = $resultPage->getLayout()->getBlock("printshippinglist");
+            $blockInstance = $resultPage->getLayout()->createBlock(\DpdConnect\Shipping\Block\Adminhtml\Order\PrintShippingList::class);
             $blockInstance->setTemplate("DpdConnect_Shipping::printshippinglist.phtml");
 
             $blockInstance->assign([
-                'sender' => $this->predictService->getSenderData($order),
+                'sender' => [
+                    'name1' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_NAME1),
+                    'street' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_STREET),
+                    'housenumber' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_HOUSE_NUMBER),
+                    'country' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY),
+                    'zipCode' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_ZIP_CODE),
+                    'city' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_CITY),
+                    'phone' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE),
+                    'email' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EMAIL),
+                    'commercialAddress' => true,
+                    'vat_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
+                    'eori_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
+                    'sprn_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
+                ],
                 'orders' => $orders
             ]);
 
@@ -148,6 +172,14 @@ class printShippingList extends \Magento\Backend\App\Action
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
+    }
+
+    /**
+     * Check if a string is serialized
+     * @param string $string
+     */
+    private function isSerialized($string) {
+        return (@unserialize($string) !== false);
     }
 
     /**

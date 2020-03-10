@@ -109,14 +109,25 @@ class Data extends AbstractHelper
 
         $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL);
 
-        $resultLabels = $this->shipmentLabel->generateLabel(
-            $order,
-            $isReturn,
-            $shipment,
-            $parcels,
-            $includeReturnLabel
-        );
+        if(count($shipment->getPackages()) > 0) {
 
+            $resultLabels = $this->shipmentLabel->generateLabelMultiPackage(
+                $order,
+                $isReturn,
+                $shipment,
+                $shipment->getPackages(),
+                $includeReturnLabel
+            );
+        } else {
+
+            $resultLabels = $this->shipmentLabel->generateLabel(
+                $order,
+                $isReturn,
+                $shipment,
+                $parcels,
+                $includeReturnLabel
+            );
+        }
 //        $shipment->getResource()->save($shipment);
 
         $parcelNumbers = [];
@@ -125,6 +136,7 @@ class Data extends AbstractHelper
                 $parcelNumbers[] = $parcelNumber;
             }
         }
+
 
         $this->shipmentManager->addTrackingNumbersToShipment($shipment, $parcelNumbers);
 

@@ -170,23 +170,20 @@ abstract class AbstractCarrier extends \Magento\Shipping\Model\Carrier\AbstractC
         $packages = $request->getPackages();
         $resultLabels = $this->shipmentLabelService->generateLabelMultiPackage($shipment->getOrder(), false, $shipment, $packages);
 
-        $parcelNumbers = [];
+        $data = [];
         foreach ($resultLabels as $resultLabel) {
+            $label = base64_decode($resultLabel['label']);
             foreach ($resultLabel['parcelNumbers'] as $parcelNumber) {
-                $parcelNumbers[] = $parcelNumber;
+                $data[] = [
+                    'tracking_number' => $parcelNumber,
+                    'label_content' => $label,
+                ];
+                $label = ' ';
             }
         }
 
-        $this->shipmentManager->addTrackingNumbersToShipment($shipment, $parcelNumbers);
-
-        // Merge the pdf request if a return label was found
-        $pdfResult = [];
-        foreach ($resultLabels as $label) {
-            $pdfResult[] = base64_decode($label['label']);
-        }
-
         $result = new DataObject();
-        $result->setData('info', []); // Possibly add more data to this if it's supported in all Magento versions
+        $result->setData('info', $data); // Possibly add more data to this if it's supported in all Magento versions
         return $result;
     }
 }
