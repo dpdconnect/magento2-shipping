@@ -91,13 +91,25 @@ class ShipmentManager
         $carrierTitle = $this->dpdSettings->getCarrierTitle($carrierCode, ScopeInterface::SCOPE_STORE, $shipment->getStoreId());
 
         foreach ($parcelNumbers as $parcelNumber) {
-            $track = $this->trackFactory->create();
-            $track->setShipment($shipment);
-            $track->setTitle($carrierTitle);
-            $track->setNumber($parcelNumber);
-            $track->setCarrierCode($carrierCode);
-            $track->setOrderId($shipment->getOrderId());
-            $track->getResource()->save($track);
+
+            // Shipment doesn't exist yet when creating a label with packages you define yourself
+            // So we simply add the tracking data to the shipment which gets saved down the road
+            if($shipment->getEntityId() === null) {
+                $track = $this->trackFactory->create()
+                    ->setNumber($parcelNumber)
+                    ->setCarrierCode($carrierCode)
+                    ->setTitle($carrierTitle)
+                    ->setOrderId($shipment->getOrderId());
+                $shipment->addTrack($track);
+            } else {
+                $track = $this->trackFactory->create();
+                $track->setShipment($shipment);
+                $track->setTitle($carrierTitle);
+                $track->setNumber($parcelNumber);
+                $track->setCarrierCode($carrierCode);
+                $track->setOrderId($shipment->getOrderId());
+                $track->getResource()->save($track);
+            }
         }
     }
 

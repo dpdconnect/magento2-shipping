@@ -28,13 +28,16 @@
         </field>
         <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Username</label>
+            <validate>required-entry</validate>
         </field>
         <field id="password" translate="label" type="obscure" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Password</label>
             <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+            <validate>required-entry</validate>
         </field>
         <field id="depot" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Depot</label>
+            <validate>required-entry</validate>
         </field>
         <field id="print_format" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Print format</label>

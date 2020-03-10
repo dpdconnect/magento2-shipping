@@ -101,7 +101,7 @@ class ShipmentLabelService extends AbstractHelper
         $this->urlHelper = $urlHelper;
     }
 
-    public function saveLabel($order, $shipment, $shipmentIdentifier, $labelData, $isReturn)
+    public function saveLabel($order, $shipment, $shipmentIdentifier, $parcelNumbers, $labelData, $isReturn)
     {
         $saveLabelAsFile = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_SAVE_LABEL_FILE);
         $labelPath = $this->dpdSettings->getValue(DpdSettings::ADVANCED_LABEL_PATH);
@@ -123,7 +123,7 @@ class ShipmentLabelService extends AbstractHelper
         $shipmentLabel->setShipmentId($shipment->getId());
         $shipmentLabel->setShipmentIncrementId($shipment->getIncrementId());
         $shipmentLabel->setCarrierCode($order->getShippingMethod());
-        $shipmentLabel->setLabelNumbers($carrierCode);
+        $shipmentLabel->setLabelNumbers(serialize($parcelNumbers));
         $shipmentLabel->setMpsId($shipmentIdentifier);
 
         if (!$saveLabelAsFile) {
@@ -165,12 +165,31 @@ class ShipmentLabelService extends AbstractHelper
         $result = $this->createShipment($shipmentData);
         $labels = $result->getContent()['labelResponses'];
 
-
         foreach ($labels as $label) {
+            $parcelNumbers = [];
+
             $labelData = base64_decode($label['label']);
             $shipmentIdentifier = $label['shipmentIdentifier'];
 
-            $this->saveLabel($order, $shipment, $shipmentIdentifier, $labelData, $isReturn);
+            // Format the label numbers before saving it
+            foreach($label['parcelNumbers'] as $number) {
+                $parcelNumbers[] = [
+                    'parcel_number' => $number,
+                    'weight' => 0
+                ];
+            }
+
+            // Add the weigh tto the parcel numbers data used in shipping lists
+            for($i = 0; $i < count($shipmentData[0]['parcels']); $i++) {
+                if(count($parcelNumbers) <= $i) {
+                    continue;
+                }
+
+                $parcelNumbers[$i]['weight'] = $shipmentData[0]['parcels'][$i]['weight'];
+            }
+
+            $this->saveLabel($order, $shipment, $shipmentIdentifier, $parcelNumbers, $labelData, $isReturn);
+
         }
         return $labels;
     }
@@ -193,6 +212,8 @@ class ShipmentLabelService extends AbstractHelper
             $shipmentData[] = $this->orderConvertService->convert($order, $includeReturn, $parcels);
         }
 
+        $weight = $this->orderConvertService->getOrderWeight($order);
+
         $result = $this->createShipment($shipmentData);
         $labels = $result->getContent()['labelResponses'];
 
@@ -200,8 +221,16 @@ class ShipmentLabelService extends AbstractHelper
         foreach ($labels as $label) {
             $labelData = base64_decode($label['label']);
             $shipmentIdentifier = $label['shipmentIdentifier'];
+            $parcelNumbers = [];
 
-            $this->saveLabel($order, $shipment, $shipmentIdentifier, $labelData, $isReturn);
+            foreach($label['parcelNumbers'] as $number) {
+                $parcelNumbers[] = [
+                    'parcel_number' => $number,
+                    'weight' => $weight
+                ];
+            }
+
+            $this->saveLabel($order, $shipment, $shipmentIdentifier, $parcelNumbers, $labelData, $isReturn);
         }
         return $labels;
     }

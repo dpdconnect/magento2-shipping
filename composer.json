@@ -3,11 +3,8 @@
     "description": "DPD Connect - Magento2 Shipping",
     "require": {
         "php": ">=7.0.13",
-        "setasign/fpdi-fpdf": "^2.1",
         "magento/framework": "^100.0|^101.0|^102.0",
-        "dpdconnect/php-sdk": "^1.0",
-        "php-http/guzzle6-adapter": "^2.0",
-        "php-http/message": "*"
+        "dpdconnect/php-sdk": "^1.0"
     },
     "type": "magento2-module",
     "license": "GPL-3.0-or-later",

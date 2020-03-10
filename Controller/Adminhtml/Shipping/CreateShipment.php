@@ -21,23 +21,16 @@ namespace DpdConnect\Shipping\Controller\Adminhtml\Shipping;
 
 use DpdConnect\Shipping\Helper\Data;
 use Exception;
+use Magento\Backend\App\Action;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\Controller\Result\Redirect;
-use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
-use Magento\Framework\Controller\ResultFactory;
-use Magento\Framework\App\ResponseInterface;
-use Magento\Framework\Controller\ResultInterface;
-use Magento\Sales\Controller\Adminhtml\Order\AbstractMassAction;
-use Magento\Sales\Model\Order\Shipment;
-use Magento\Sales\Model\ResourceModel\Order\CollectionFactory as OrderCollectionFactory;
+use Magento\Sales\Api\Data\ShipmentInterface;
 use Magento\Backend\App\Action\Context;
 use Magento\Ui\Component\MassAction\Filter;
-use Magento\Sales\Model\Order;
-use Magento\Sales\Model\ResourceModel\Order\Shipment\CollectionFactory;
-use DpdConnect\Shipping\Model\ShipmentLabelFactory;
+use Magento\Sales\Model\ResourceModel\Order\Shipment\CollectionFactory as ShipmentCollectionFactory;
 
-class CreateShipment extends AbstractMassAction
+class CreateShipment extends Action
 {
     /**
      * @var Filter
@@ -62,14 +55,14 @@ class CreateShipment extends AbstractMassAction
     /**
      * @param Context $context
      * @param Filter $filter
-     * @param CollectionFactory $collectionFactory
+     * @param ShipmentCollectionFactory $collectionFactory
      * @param Data $dataHelper
      * @param FileFactory $fileFactory
      */
     public function __construct(
         Context $context,
         Filter $filter,
-        CollectioNFactory $collectionFactory,
+        ShipmentCollectionFactory $collectionFactory,
         Data $dataHelper,
         FileFactory $fileFactory
     ) {
@@ -77,25 +70,38 @@ class CreateShipment extends AbstractMassAction
         $this->dataHelper = $dataHelper;
         $this->fileFactory = $fileFactory;
         $this->collectionFactory = $collectionFactory;
-        parent::__construct($context, $filter);
+        parent::__construct($context);
     }
 
-    public function massAction(AbstractCollection $collection)
+
+
+    /**
+     * @inheritDoc
+     */
+    public function execute()
     {
         try {
+
+            $collection = $this->collectionFactory->create();
+            $collection = $this->filter->getCollection($collection);
+
+            $shipments = [];
+            /** @var ShipmentInterface[] $shipment */
+            foreach ($collection as $shipment) {
+                $shipments[] = $shipment;
+            }
+
             $labelPDFs = array();
 
-            if ($collection->getSize()) {
-                /** @var Shipment $shipment */
-                foreach ($collection as $shipment) {
-                    $order = $shipment->getOrder();
-                    if ($this->dataHelper->isDPDOrder($order)) {
-                        $label = $this->dataHelper->generateShippingLabel($order, $shipment);
+            foreach($shipments as $shipment) {
+                $order = $shipment->getOrder();
+                if ($this->dataHelper->isDPDOrder($order)) {
+                    $label = $this->dataHelper->generateShippingLabel($order, $shipment);
 
-                        $labelPDFs = array_merge($labelPDFs, $label);
-                    }
+                    $labelPDFs = array_merge($labelPDFs, $label);
                 }
             }
+
 
             if (count($labelPDFs) == 0) {
                 $this->messageManager->addErrorMessage(
