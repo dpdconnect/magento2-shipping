@@ -85,7 +85,7 @@ class ApiCallback implements ApiCallbackInterface
         }
 
         $label = $this->shipmentLabelService->getLabel($parcelNumber);
-        $this->shipmentLabelService->saveLabel($order, $shipment, $shipmentIdentifier, $label, $isReturn);
+        $this->shipmentLabelService->saveLabel($order, $shipment, $shipmentIdentifier, [$parcelNumber], $label, $isReturn);
 
         $this->shipmentManager->addTrackingNumbersToShipment($shipment, [$parcelNumber]);
 

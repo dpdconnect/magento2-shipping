@@ -19,6 +19,7 @@
  */
 namespace DpdConnect\Shipping\Helper;
 
+use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use DpdConnect\Sdk\Objects\ObjectFactory;
 use DpdConnect\Sdk\Objects\MetaData;
@@ -49,6 +50,10 @@ class DPDClient extends AbstractHelper
      * @var ModuleListInterface
      */
     private $moduleList;
+    /**
+     * @var CacheInterface
+     */
+    private $cache;
 
     /**
      * DPDClient constructor.
@@ -57,18 +62,21 @@ class DPDClient extends AbstractHelper
      * @param Encryptor $crypt
      * @param ProductMetadataInterface $productMetadata
      * @param ModuleListInterface $moduleList
+     * @param CacheInterface $cache
      */
     public function __construct(
         Context $context,
         DpdSettings $dpdSettings,
         Encryptor $crypt,
         ProductMetadataInterface $productMetadata,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        CacheInterface $cache
     ) {
         $this->dpdSettings = $dpdSettings;
         $this->crypt = $crypt;
         $this->productMetadata = $productMetadata;
         $this->moduleList = $moduleList;
+        $this->cache = $cache;
         parent::__construct($context);
     }
 
@@ -89,9 +97,21 @@ class DPDClient extends AbstractHelper
             'pluginVersion' => $pluginVersion,
         ]));
 
-        return $clientBuiler->buildAuthenticatedByPassword(
+        $client = $clientBuiler->buildAuthenticatedByPassword(
             $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME),
             $this->crypt->decrypt($this->dpdSettings->getValue(DpdSettings::ACCOUNT_PASSWORD))
         );
+
+        $client->getAuthentication()->setJwtToken(
+            $this->cache->load('dpdconnect_jwt_token') ?: null
+        );
+
+        // This is where we save the (new) JWT token to the cache
+        $client->getAuthentication()->setTokenUpdateCallback(function (string $jwtToken) use ($client) {
+            $this->cache->save($jwtToken, 'dpdconnect_jwt_token');
+            $client->getAuthentication()->setJwtToken($jwtToken);
+        });
+
+        return $client;
     }
 }

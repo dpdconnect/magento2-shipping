@@ -109,7 +109,8 @@ class OrderConvertService extends AbstractHelper
                 'postalcode'        => strtoupper(str_replace(' ', '', $billingAddress->getPostcode())),
                 'city'              => $billingAddress->getCity(),
                 'country'           => $billingAddress->getCountryId(),
-                'phone'             => $billingAddress->getTelephone(),
+                'phoneNumber'       => $billingAddress->getTelephone(),
+                'email'             => $order->getCustomerEmail(),
                 'commercialAddress' => false
             );
         } else {
@@ -126,7 +127,8 @@ class OrderConvertService extends AbstractHelper
                 'postalcode'        => strtoupper(str_replace(' ', '', $shippingAddress->getPostcode())),
                 'city'              => $shippingAddress->getCity(),
                 'country'           => $shippingAddress->getCountryId(),
-                'phone'             => $shippingAddress->getTelephone(),
+                'phoneNumber'       => $shippingAddress->getTelephone(),
+                'email'             => $order->getCustomerEmail(),
                 'commercialAddress' => false
             );
         }
@@ -230,7 +232,7 @@ class OrderConvertService extends AbstractHelper
                 'country' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY),
                 'postalcode' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_ZIP_CODE),
                 'city' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_CITY),
-                'phone' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE),
+                'phoneNumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE),
                 'email' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EMAIL),
                 'commercialAddress' => true,
                 'vat_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
@@ -241,6 +243,7 @@ class OrderConvertService extends AbstractHelper
             'product' => [
                 'productCode' => $this->getProductCode($isReturn),
                 'saturdayDelivery' => ($this->orderService->isDPDSaturdayOrder() && !$isReturn),
+                'homeDelivery' => $this->orderService->isDPDPredictOrder() || $this->orderService->isDPDSaturdayOrder()
             ]
         ];
 
@@ -313,7 +316,7 @@ class OrderConvertService extends AbstractHelper
                 $hsCode = $product->getHsCode() ?? '';
             }
             $customsLines[] = [
-                'description' => substr($item['name'], 0, 35),
+                'description' => mb_strcut($item['name'], 0, 35),
                 'harmonizedSystemCode' => $hsCode,
                 'originCountry' => $originCountry,
                 'quantity' => (int) $item->getQtyOrdered(),

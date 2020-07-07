@@ -67,6 +67,14 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $this->createDpdBatchItemTable($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.0.5') < 0) {
+            $setup->getConnection()->modifyColumn(
+                $setup->getTable('dpdconnect_shipping_tablerate'),
+                'condition_name',
+                ['length' => 30, 'type' => Table::TYPE_TEXT, 'nullable' => false]
+            );
+        }
+
         $setup->endSetup();
     }
 
@@ -170,7 +178,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
         )->addColumn(
             'condition_name',
             Table::TYPE_TEXT,
-            20,
+            30,
             ['nullable' => false],
             'Rate Condition name'
         )->addColumn(

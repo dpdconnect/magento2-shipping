@@ -44,6 +44,7 @@
                 </argument>
             </action>
         </massaction>
+        <paging name="listing_paging"/>
     </listingToolbar>
     <columns name="dpdconnect_shipping_shipment_label_grid_columns">
         <selectionsColumn name="ids">
