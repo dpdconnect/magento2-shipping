@@ -27,6 +27,7 @@ use Magento\Sales\Model\Order;
 use DpdConnect\Shipping\Helper\Data;
 use DpdConnect\Shipping\Helper\Services\DPDPickupService;
 use Magento\Framework\View\Asset\Repository;
+use Magento\Framework\View\Element\Template;
 
 class Index extends \Magento\Framework\App\Action\Action
 {
@@ -205,15 +206,18 @@ class Index extends \Magento\Framework\App\Action\Action
             $openingHoursAfternoon = __('Closed');
         }
 
-        $html = '
-            <tr>
-                <td style="padding: 3px; border: none;"></td>
-                <td style="padding: 3px; width: 33%;"><strong>' . __(strtolower($weekday)) . '</strong></td>
-                <td style="padding: 3px; width: 33%; text-align: center;">' . $openingHoursMorning . '</td>
-                <td style="padding: 3px; width: 33%; text-align: center;">' . $openingHoursAfternoon . '</td>
-            </tr>';
+        $layout = $this->_view->getLayout();
+        $openingHoursData = [
+            'openingHoursMorning'  => $openingHoursMorning,
+            'openingHoursAfternoon'=> $openingHoursAfternoon,
+            'weekday'              => $weekday
+        ];
 
-        return $html;
+        $block = $layout->createBlock(Template::class)
+                        ->setTemplate('DpdConnect_Shipping::checkout/shipping/parcelshop-opening-hours.phtml')
+                        ->setData('openingHours', $openingHoursData);
+
+        return $block->toHtml();
     }
 
     /**
@@ -227,30 +231,11 @@ class Index extends \Magento\Framework\App\Action\Action
     {
         $image = $this->assetRepo->getUrlWithParams('DpdConnect_Shipping::images/dpd_parcelshop_logo.png', array('_secure' => $this->getRequest()->isSecure()));
         $routeIcon = $this->assetRepo->getUrlWithParams('DpdConnect_Shipping::images/icon_route.png', array('_secure' => $this->getRequest()->isSecure()));
-
-        $html = '
-            <div class="content">
-                <table style="min-width: 380px" cellpadding="3" cellspacing="3">
-                    <tbody>
-                        <tr>
-                            <td style="padding: 3px; padding-right: 15px;" rowspan="2">
-                                <img class="parcelshoplogo bubble" style="width: 80px; height: 80px;" src="' . $image . '" alt="DPD Parcelshop logo"/>
-                            </td>
-                            <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                                <strong>' . ($special ? $shop['getParcelshopPudoName']() : $shop['company']) . '</strong><br />
-                                ' . ($special ? $shop['getData']('parcelshop_address_1') : $shop['street'] . " " . $shop['houseNo']) . '<br />
-                                ' . ($special ? $shop['getParcelshopPostCode']() . ' ' . $shop['getParcelshopTown']() : $shop['zipCode'] . ' ' . $shop['city']) . '
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                                <strong>Openingstijden</strong>
-                            </td>
-                        </tr>';
-
+        $layout = $this->_view->getLayout();
+        $openingHoursHtml = '';
         if (!$special && isset($shop['openingHours']) && $shop['openingHours'] != "") {
             foreach ($shop['openingHours'] as $openinghours) {
-                $html .= $this->_getOpeningHoursHtml(
+                $openingHoursHtml .= $this->_getOpeningHoursHtml(
                     $openinghours['openMorning'],
                     $openinghours['closeMorning'],
                     $openinghours['openAfternoon'],
@@ -260,7 +245,7 @@ class Index extends \Magento\Framework\App\Action\Action
             }
         } else {
             foreach (json_decode($shop['getParcelshopOpeninghours']()) as $openinghours) {
-                $html .= $this->_getOpeningHoursHtml(
+                $openingHoursHtml .= $this->_getOpeningHoursHtml(
                     $openinghours['openMorning'],
                     $openinghours['closeMorning'],
                     $openinghours['openAfternoon'],
@@ -270,17 +255,16 @@ class Index extends \Magento\Framework\App\Action\Action
             }
         }
 
-        $html .= '
-                        <tr>
-                            <td style="padding: 3px; border: none;"></td>
-                            <td style="padding: 3px; width: 100%;" colspan="3">
-                                <a class="parcelshoplink" id="' . ($special ? $shop['getParcelshopDelicomId']() : $shop['parcelShopId']) . '" href="#">' . __('Select Parcelshop') . '</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>';
+        $parcelShopData = [
+            'shop'             => $shop,
+            'special'          => $special,
+            'image'            => $image,
+            'openingHoursHtml' => $openingHoursHtml
+        ];
+        $block = $layout->createBlock(Template::class)
+                        ->setTemplate('DpdConnect_Shipping::checkout/shipping/parcelshop-marker.phtml')
+                        ->setData('markerParams', $parcelShopData);
 
-        return $html;
+        return $block->toHtml();
     }
 }

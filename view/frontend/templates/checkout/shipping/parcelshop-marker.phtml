@@ -1,0 +1,36 @@
+<?php
+$markerParams = $block->getData('markerParams');
+$shop = $markerParams['shop'];
+$special = $markerParams['special'];
+$image = $markerParams['image'];
+$openingHoursHtml = $markerParams['openingHoursHtml'];
+?>
+<div class="content">
+    <table style="min-width: 380px" cellpadding="3" cellspacing="3">
+        <tbody>
+            <tr>
+                <td style="padding: 3px; padding-right: 15px;" rowspan="2">
+                    <img class="parcelshoplogo bubble" style="width: 80px; height: 80px;" src="<?= $image ?>" alt="DPD Parcelshop logo" />
+                </td>
+                <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
+                    <strong><?= ($special ? $shop['getParcelshopPudoName']() : $shop['company']) ?></strong><br />
+                    <?= ($special ? $shop['getData']('parcelshop_address_1') : $shop['street'] . " " . $shop['houseNo']) . '<br />
+                                ' . ($special ? $shop['getParcelshopPostCode']() . ' ' . $shop['getParcelshopTown']() : $shop['zipCode'] . ' ' . $shop['city']) ?>
+                </td>
+            </tr>
+            <tr>
+                <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
+                    <strong>Openingstijden</strong>
+                </td>
+            </tr>
+             <?= $openingHoursHtml; ?>
+            <tr>
+                <td style="padding: 3px; border: none;"></td>
+                <td style="padding: 3px; width: 100%;" colspan="3">
+                    <a class="parcelshoplink" id="<?= ($special ? $shop['getParcelshopDelicomId']() : $shop['parcelShopId']) ?>" href="#"> <?= __('Select Parcelshop') ?></a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
