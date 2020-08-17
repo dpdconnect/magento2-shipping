@@ -169,7 +169,7 @@ class OrderConvertService extends AbstractHelper
      * @param int $parcelAmount
      * @return array
      */
-    private function addParcels(Order $order, bool $isReturn = false, int $parcelAmount = 1)
+    public function addParcels(Order $order, bool $isReturn = false, int $parcelAmount = 1)
     {
         $parcels = [];
 
@@ -189,7 +189,7 @@ class OrderConvertService extends AbstractHelper
         return $parcels;
     }
 
-    private function addParcelsFromPackages(Order $order, $packages)
+    public function addParcelsFromPackages(Order $order, $packages)
     {
         $parcels = [];
 
