@@ -166,7 +166,11 @@ class Dpdpredict extends AbstractCarrier implements \Magento\Shipping\Model\Carr
 
             $rate = $this->getRate($request);
          
-            $method->setPrice($rate['price']);
+            $shippingPrice = $rate['price'];
+            if ($request->getFreeShipping() === true) {
+                $shippingPrice = 0;
+            }
+            $method->setPrice($shippingPrice);
             $method->setCost($rate['cost']);
         } else {
             /*you can fetch shipping price from different sources over some APIs, we used price from config.xml - xml node price*/
