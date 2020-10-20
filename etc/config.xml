@@ -56,6 +56,7 @@
                 <print_phone_number>0</print_phone_number>
                 <print_order_id>0</print_order_id>
                 <customs_content_type>D</customs_content_type>
+                <send_confirm_email>0</send_confirm_email>
             </advanced>
             <product_attribute>
                 <hs_code>hs_code</hs_code>
