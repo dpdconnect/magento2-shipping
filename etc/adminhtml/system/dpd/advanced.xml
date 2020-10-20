@@ -62,5 +62,10 @@
             <label>Print order Id on label</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
+        <field id="send_confirm_email" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="1">
+            <label>Send shipment confirmation Email</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+        </field>
     </group>
 </include>

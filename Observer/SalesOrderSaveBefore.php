@@ -30,7 +30,7 @@ class SalesOrderSaveBefore implements ObserverInterface
      * @var QuoteRepository
      */
     private $quoteRepository;
-    
+
     /**
      * @var \Magento\Framework\App\State
      */
@@ -77,10 +77,10 @@ class SalesOrderSaveBefore implements ObserverInterface
         }
 
         $order->setDpdParcelshopId($quote->getDpdParcelshopId());
-        $order->setDpdCompany($quote->getDpdCompany());
-        $order->setDpdStreet($quote->getDpdStreet());
-        $order->setDpdZipcode($quote->getDpdZipcode());
-        $order->setDpdCity($quote->getDpdCity());
-        $order->setDpdCountry($quote->getDpdCountry());
+        $order->setDpdCompany($quote->getData('dpd_parcelshop_name'));
+        $order->setDpdStreet($quote->getData('dpd_parcelshop_street'));
+        $order->setDpdZipcode($quote->getData('dpd_parcelshop_zip_code'));
+        $order->setDpdCity($quote->getData('dpd_parcelshop_city'));
+        $order->setDpdCountry($quote->getData('dpd_parcelshop_country'));
     }
 }

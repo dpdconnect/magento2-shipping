@@ -8,6 +8,7 @@ use Magento\Sales\Model\Convert\Order as OrderConvert;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\TrackFactory;
+use Magento\Shipping\Model\ShipmentNotifier;
 use Magento\Store\Model\ScopeInterface;
 
 class ShipmentManager
@@ -28,6 +29,10 @@ class ShipmentManager
      * @var TrackFactory
      */
     private $trackFactory;
+    /**
+     * @var ShipmentNotifier
+     */
+    private $shipmentNotifier;
 
     /**
      * ShipmentManager constructor.
@@ -35,17 +40,20 @@ class ShipmentManager
      * @param TransactionFactory $transactionFactory
      * @param DpdSettings $dpdSettings
      * @param TrackFactory $trackFactory
+     * @param ShipmentNotifier $shipmentNotifier
      */
     public function __construct(
         OrderConvert $orderConvert,
         TransactionFactory $transactionFactory,
         DpdSettings $dpdSettings,
-        TrackFactory $trackFactory
+        TrackFactory $trackFactory,
+        ShipmentNotifier $shipmentNotifier
     ) {
         $this->orderConvert = $orderConvert;
         $this->transactionFactory = $transactionFactory;
         $this->dpdSettings = $dpdSettings;
         $this->trackFactory = $trackFactory;
+        $this->shipmentNotifier = $shipmentNotifier;
     }
 
     /**
@@ -63,7 +71,7 @@ class ShipmentManager
 
         $orderShipment = $this->orderConvert->toShipment($order);
 
-        foreach ($order->getAllItems() as $orderItem) {
+        foreach ($order->getAllVisibleItems() as $orderItem) {
             $qtyShipped = $orderItem->getQtyOrdered();
 
             // Create shipment item with qty
@@ -110,6 +118,10 @@ class ShipmentManager
                 $track->setOrderId($shipment->getOrderId());
                 $track->getResource()->save($track);
             }
+        }
+        $sendConfirmEmail = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_SEND_CONFIRM_EMAIL);
+        if ($sendConfirmEmail) {
+            $this->shipmentNotifier->notify($shipment);
         }
     }
 
