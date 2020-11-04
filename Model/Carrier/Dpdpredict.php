@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 namespace DpdConnect\Shipping\Model\Carrier;
- 
+
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Rate\Result;
 
@@ -80,7 +80,7 @@ class Dpdpredict extends AbstractCarrier implements \Magento\Shipping\Model\Carr
     {
         return $this;
     }
-    
+
     /**
      * @param \Magento\Quote\Model\Quote\Address\RateRequest $request
      * @return array|bool
@@ -96,32 +96,22 @@ class Dpdpredict extends AbstractCarrier implements \Magento\Shipping\Model\Carr
      */
     public function collectRates(RateRequest $request)
     {
-        $accountType = $this->_scopeConfig->getValue(
-            'dpdshipping/account_settings/account_type',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $this->getStore()
-        );
-
-        if ($accountType !== 'B2C') {
-            return false;
-        }
-
         if (!$this->getConfigFlag('active')) {
             return false;
         }
-                
+
         /** @var \Magento\Shipping\Model\Rate\Result $result */
         $result = $this->_rateResultFactory->create();
-        
+
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_rateMethodFactory->create();
- 
+
         $method->setCarrier('dpdpredict');
         $method->setCarrierTitle($this->getConfigData('title'));
- 
+
         $method->setMethod('dpdpredict');
         $method->setMethodTitle($this->getConfigData('name'));
- 
+
         if ($this->getConfigData('rate_type') == 'table') {
             // Possible bug in Magento, new sessions post no data when fetching the shipping methods, only country_id: US
             // This prevents the tablerates from showing a 0,00 shipping price
@@ -155,29 +145,29 @@ class Dpdpredict extends AbstractCarrier implements \Magento\Shipping\Model\Carr
 
             $conditionName = $this->_scopeConfig->getValue('carriers/dpdpredict/condition_name', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE);
             $request->setConditionName($conditionName ? $conditionName : $this->_defaultConditionName);
-            
+
             // Package weight and qty free shipping
             $oldWeight = $request->getPackageWeight();
             $oldQty = $request->getPackageQty();
-            
+
             $request->setPackageWeight($request->getFreeMethodWeight());
             $request->setPackageQty($oldQty - $freeQty);
             $request->setShippingMethod('dpdpredict');
 
             $rate = $this->getRate($request);
-         
+
             $method->setPrice($rate['price']);
             $method->setCost($rate['cost']);
         } else {
             /*you can fetch shipping price from different sources over some APIs, we used price from config.xml - xml node price*/
             $amount = $this->getConfigData('price');
-            
+
             $method->setPrice($amount);
             $method->setCost($amount);
         }
- 
+
         $result->append($method);
- 
+
         return $result;
     }
 }

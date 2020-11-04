@@ -7,7 +7,6 @@ use Magento\Framework\App\Helper\AbstractHelper;
 
 class DpdSettings extends AbstractHelper
 {
-    const ACCOUNT_TYPE = 'dpdshipping/account_settings/account_type';
     const ACCOUNT_USERNAME = 'dpdshipping/account_settings/username';
     const ACCOUNT_PASSWORD = 'dpdshipping/account_settings/password';
     const ACCOUNT_DEPOT = 'dpdshipping/account_settings/depot';

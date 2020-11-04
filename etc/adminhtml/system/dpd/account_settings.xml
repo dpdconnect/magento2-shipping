@@ -22,10 +22,6 @@
     <group id="account_settings" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <label>Account settings</label>
-        <field id="account_type" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>DPD Account Type</label>
-            <source_model>DpdConnect\Shipping\Config\Source\Settings\AccountType</source_model>
-        </field>
         <field id="username" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Username</label>
             <validate>required-entry</validate>

@@ -21,7 +21,6 @@
     <default>
         <dpdshipping>
             <account_settings>
-                <account_type>B2C</account_type>
                 <username/>
                 <password/>
                 <depot/>
