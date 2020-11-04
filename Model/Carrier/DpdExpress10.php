@@ -98,16 +98,6 @@ class DpdExpress10 extends AbstractCarrier implements
      */
     public function collectRates(RateRequest $request)
     {
-        $accountType = $this->_scopeConfig->getValue(
-            'dpdshipping/account_settings/account_type',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $this->getStore()
-        );
-
-        if ($accountType !== 'B2B') {
-            return false;
-        }
-
         if (!$this->getConfigFlag('active')) {
             return false;
         }

@@ -18,7 +18,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 namespace DpdConnect\Shipping\Model\Carrier;
- 
+
 use Magento\Quote\Model\Quote\Address\RateRequest;
 use Magento\Shipping\Model\Rate\Result;
 
@@ -90,39 +90,29 @@ class Dpdpickup extends AbstractCarrier implements
     {
         return $this->_tablerateFactory->create()->getRate($request);
     }
-    
+
     /**
      * @param RateRequest $request
      * @return bool|Result
      */
     public function collectRates(RateRequest $request)
     {
-        $accountType = $this->_scopeConfig->getValue(
-            'dpdshipping/account_settings/account_type',
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE,
-            $this->getStore()
-        );
-
-        if ($accountType !== 'B2C') {
-            return false;
-        }
-
         if (!$this->getConfigFlag('active')) {
             return false;
         }
-        
+
         /** @var \Magento\Shipping\Model\Rate\Result $result */
         $result = $this->_rateResultFactory->create();
-        
+
         /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
         $method = $this->_rateMethodFactory->create();
- 
+
         $method->setCarrier('dpdpickup');
         $method->setCarrierTitle($this->getConfigData('title'));
- 
+
         $method->setMethod('dpdpickup');
         $method->setMethodTitle($this->getConfigData('name'));
- 
+
         if ($this->getConfigData('rate_type') == 'table') {
             // Possible bug in Magento, new sessions post no data when fetching the shipping methods, only country_id: US
             // This prevents the tablerates from showing a 0,00 shipping price
@@ -160,7 +150,7 @@ class Dpdpickup extends AbstractCarrier implements
             // Package weight and qty free shipping
             $oldWeight = $request->getPackageWeight();
             $oldQty = $request->getPackageQty();
-            
+
             $request->setPackageWeight($request->getFreeMethodWeight());
             $request->setPackageQty($oldQty - $freeQty);
             $request->setShippingMethod('dpdpickup');
@@ -168,20 +158,20 @@ class Dpdpickup extends AbstractCarrier implements
             $rate = $this->getRate($request);
 
             //print_r($rate);
-            
+
             $method->setPrice($rate['price']);
             $method->setCost($rate['cost']);
             $result->append($method);
         } else {
             /*you can fetch shipping price from different sources over some APIs, we used price from config.xml - xml node price*/
             $amount = $this->getConfigData('price');
-            
+
             $method->setPrice($amount);
             $method->setCost($amount);
             $result->append($method);
         }
- 
- 
+
+
         return $result;
     }
 }
