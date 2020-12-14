@@ -30,6 +30,7 @@ class DpdSettings extends AbstractHelper
     const STORE_INFORMATION_VAT_NUMBER = 'dpdshipping/store_information/vat_number';
     const STORE_INFORMATION_EORI = 'dpdshipping/store_information/eori';
     const STORE_INFORMATION_SPRN = 'dpdshipping/store_information/sprn';
+    const STORE_INFORMATION_CUSTOMS_TERMS = 'dpdshipping/store_information/customs_terms';
 
     const ADVANCED_SEND_CONFIRM_EMAIL = 'dpdshipping/advanced/send_confirm_email';
     const ADVANCED_INCLUDE_RETURN_LABEL = 'dpdshipping/advanced/include_return_label';

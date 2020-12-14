@@ -79,7 +79,12 @@
         </field>
         <field id="sprn" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
                showInStore="1">
-            <label>SPRN</label>
+            <label>HMRC number</label>
+            <comment>Mandatory if the value of the parcel is ≤ £ 135.</comment>
+        </field>
+        <field id="customs_terms" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+            <label>Customs terms</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\CustomsTerms</source_model>
         </field>
     </group>
 </include>

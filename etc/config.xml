@@ -46,6 +46,7 @@
                 <vat_number/>
                 <eori/>
                 <sprn/>
+                <customs_terms>DAPNP</customs_terms>
             </store_information>
             <advanced>
                 <include_return_label>0</include_return_label>
