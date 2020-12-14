@@ -235,9 +235,9 @@ class OrderConvertService extends AbstractHelper
                 'phoneNumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE),
                 'email' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EMAIL),
                 'commercialAddress' => true,
-                'vat_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
-                'eori_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
-                'sprn_number' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
+                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
+                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
+                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
             ],
             'receiver' => $this->getReceiverData($order),
             'product' => [
@@ -248,11 +248,11 @@ class OrderConvertService extends AbstractHelper
         ];
 
         $shipment['customs'] = [
-            'terms' => 'DAP',
+            'terms' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_CUSTOMS_TERMS),
             'totalCurrency' => $order->getOrderCurrencyCode(),
             'totalAmount' => (float) $order->getBaseGrandTotal(),
             'customsLines' => $this->addCustomsLines($order),
-            'consignee' => [
+            'consignor' => [
                 'name1' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_NAME),
                 'street' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_STREET),
                 'housenumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_HOUSE_NUMBER),
@@ -260,8 +260,11 @@ class OrderConvertService extends AbstractHelper
                 'city' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_CITY),
                 'country' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_COUNTRY),
                 'commercialAddress' => true,
+                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
+                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
+                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
             ],
-            'consignor' => $this->getReceiverData($order),
+            'consignee' => $this->getReceiverData($order)
         ];
 
         // The customs/packages popup when creating a new shipment is the only way to have multiple parcels for a single
