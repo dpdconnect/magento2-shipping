@@ -145,6 +145,12 @@ class Index extends \Magento\Framework\App\Action\Action
         ];
 
         $parcelShops = $this->dpdClient->authenticate()->getParcelshop()->getList($coordinates);
+        if (! \is_array($parcelShops)) {
+            $resultData['success'] = false;
+            $resultData['error_message'] = __('No parcelshops found');
+
+            return $result->setData($resultData);
+        }
 
         $params = array('_secure' => $this->getRequest()->isSecure());
 
