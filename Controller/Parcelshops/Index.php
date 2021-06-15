@@ -64,7 +64,9 @@ class Index extends \Magento\Framework\App\Action\Action
         $this->dpdSettings = $dpdSettings;
     }
 
-
+    /**
+     * @deprecated This method has been moved to Services\GoogleMaps and will be deleted from this location in a future release
+     */
     public function getGoogleMapsCenter($postcode, $countryId)
     {
         try {
@@ -82,6 +84,9 @@ class Index extends \Magento\Framework\App\Action\Action
         return [$LATITUDE, $LONGITUDE];
     }
 
+    /**
+     * @deprecated This method has been moved to Services\GoogleMaps and will be deleted from this location in a future release
+     */
     public function getGoogleMapsCenterByQuery($query)
     {
         try {
