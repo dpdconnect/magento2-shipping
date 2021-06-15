@@ -1,0 +1,12 @@
+<?php
+$openingHours =  $block->getData('openingHours');
+$openingHoursMorning = $openingHours['openingHoursMorning'];
+$openingHoursAfternoon= $openingHours['openingHoursAfternoon'];
+$weekday = $openingHours['weekday'];
+?>
+<tr>
+    <td style="padding: 3px; border: none;"></td>
+    <td style="padding: 3px; width: 33%;"><strong><?= __(strtolower($weekday)) ?></strong></td>
+    <td style="padding: 3px; width: 33%; text-align: center;"><?= $openingHoursMorning ?></td>
+    <td style="padding: 3px; width: 33%; text-align: center;"><?= $openingHoursAfternoon ?></td>
+</tr>
