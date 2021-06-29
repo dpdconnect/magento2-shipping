@@ -67,10 +67,46 @@ class UpgradeData implements UpgradeDataInterface
             $this->createParcelShopFieldsInOrder($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.0.6') < 0) {
+            $this->createAgeCheckProductAttributes($setup);
+        }
+
         /**
          * Prepare database after install
          */
         $setup->endSetup();
+    }
+
+    private function createAgeCheckProductAttributes(ModuleDataSetupInterface $setup)
+    {
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $eavSetup->addAttribute(
+            Product::ENTITY,
+            'age_check',
+            [
+                'type' => 'int',
+                'backend' => '',
+                'frontend' => '',
+                'label' => 'Age check',
+                'input' => 'boolean',
+                'class' => '',
+                "source"   => 'Magento\Eav\Model\Entity\Attribute\Source\Boolean',
+                'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible' => true,
+                'required' => false,
+                'user_defined' => true,
+                'default' => null,
+                'searchable' => false,
+                'filterable' => false,
+                'comparable' => false,
+                'visible_on_front' => false,
+                'used_in_product_listing' => false,
+                'unique' => false,
+                'apply_to' => '',
+                'group' => 'DPD Product Attributes',
+            ]
+        );
     }
 
     private function createParcelShopFieldsInOrder(ModuleDataSetupInterface $setup)

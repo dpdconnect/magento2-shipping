@@ -243,7 +243,8 @@ class OrderConvertService extends AbstractHelper
             'product' => [
                 'productCode' => $this->getProductCode($isReturn),
                 'saturdayDelivery' => ($this->orderService->isDPDSaturdayOrder() && !$isReturn),
-                'homeDelivery' => $this->orderService->isDPDPredictOrder() || $this->orderService->isDPDSaturdayOrder()
+                'homeDelivery' => $this->orderService->isDPDPredictOrder() || $this->orderService->isDPDSaturdayOrder(),
+                'ageCheck' => $this->orderService->isAgeCheckOrder()
             ]
         ];
 
@@ -295,6 +296,7 @@ class OrderConvertService extends AbstractHelper
                 ];
             }
         }
+
         return $shipment;
     }
 
