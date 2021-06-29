@@ -40,7 +40,21 @@ class OrderService extends AbstractHelper
 
         return $this;
     }
-    
+
+    /**
+     * @return bool
+     */
+    public function isAgeCheckOrder()
+    {
+        $orderItems = $this->order->getAllVisibleItems();
+        foreach($orderItems as $orderItem) {
+            if($orderItem->getProduct()->getAgeCheck()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * @return bool
      */
