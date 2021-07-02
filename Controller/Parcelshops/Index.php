@@ -255,7 +255,7 @@ class Index extends \Magento\Framework\App\Action\Action
                         </tr>
                         <tr>
                             <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                                <strong>__('Opening hours')</strong>
+                                <strong>' . __('Opening hours') . '</strong>
                             </td>
                         </tr>';
 
