@@ -157,15 +157,20 @@ class Dpdpickup extends AbstractCarrier implements
 
             $rate = $this->getRate($request);
 
-            //print_r($rate);
-
-            $method->setPrice($rate['price']);
+            $shippingPrice = $rate['price'];
+            if ($request->getFreeShipping() === true) {
+                $shippingPrice = 0;
+            }
+            $method->setPrice($shippingPrice);
             $method->setCost($rate['cost']);
             $result->append($method);
         } else {
             /*you can fetch shipping price from different sources over some APIs, we used price from config.xml - xml node price*/
             $amount = $this->getConfigData('price');
 
+            if ($request->getFreeShipping() === true) {
+                $amount = 0;
+            }
             $method->setPrice($amount);
             $method->setCost($amount);
             $result->append($method);
