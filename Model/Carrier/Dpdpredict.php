@@ -143,7 +143,11 @@ class Dpdpredict extends AbstractCarrier implements \Magento\Shipping\Model\Carr
                 $request->setPackageValue($oldValue - $freePackageValue);
             }
 
-            $conditionName = $this->_scopeConfig->getValue('carriers/dpdpredict/condition_name', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE);
+            $conditionName = $this->_scopeConfig->getValue(
+                'carriers/dpdpredict/condition_name',
+                \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
+                $request->getWebsiteId()
+            );
             $request->setConditionName($conditionName ? $conditionName : $this->_defaultConditionName);
 
             // Package weight and qty free shipping
