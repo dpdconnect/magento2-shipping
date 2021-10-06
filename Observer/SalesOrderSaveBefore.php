@@ -51,36 +51,39 @@ class SalesOrderSaveBefore implements ObserverInterface
             return;
         }
 
-        $order = $observer->getEvent()->getOrder();
         /** @var Order $order */
-
-        if ($order->getShippingMethod() != 'dpdpickup_dpdpickup') {
+        $order = $observer->getEvent()->getOrder();
+        if (false === in_array($order->getShippingMethod(), ['dpd_dpd', 'dpdpickup_dpdpickup'])) {
             return;
         }
 
         $quoteId = $order->getQuoteId();
+
         try {
             $quote = $this->quoteRepository->get($quoteId);
         } catch (\Magento\Framework\Exception\NoSuchEntityException $e) {
-            $quote = null;
-        }
-
-        // Happens when the order has already been placed in which caes this event has already
-        // been called succesfully
-        if ($quote == null) {
+            // Happens when the order has already been placed in which case this event has already
+            // been called succesfully
             return;
         }
 
-        // Happens when editing old orders before 1.0.7
-        if ($quote->getDpdParcelshopId() == '') {
-            return;
+        if ('dpdpickup_dpdpickup' === $order->getShippingMethod()) {
+            // Happens when editing old orders before 1.0.7
+            if ($quote->getData('dpd_parcelshop_id') == '') {
+                return;
+            }
+
+            $order->setDpdParcelshopId($quote->getData('dpd_parcelshop_id'));
+            $order->setDpdParcelshopName($quote->getData('dpd_parcelshop_name'));
+            $order->setDpdParcelshopStreet($quote->getData('dpd_parcelshop_street'));
+            $order->setDpdParcelshopHouseNumber($quote->getData('dpd_parcelshop_house_number'));
+            $order->setDpdParcelshopZipCode($quote->getData('dpd_parcelshop_zip_code'));
+            $order->setDpdParcelshopCity($quote->getData('dpd_parcelshop_city'));
+            $order->setDpdParcelshopCountry($quote->getData('dpd_parcelshop_country'));
         }
 
-        $order->setDpdParcelshopId($quote->getDpdParcelshopId());
-        $order->setDpdCompany($quote->getData('dpd_parcelshop_name'));
-        $order->setDpdStreet($quote->getData('dpd_parcelshop_street'));
-        $order->setDpdZipcode($quote->getData('dpd_parcelshop_zip_code'));
-        $order->setDpdCity($quote->getData('dpd_parcelshop_city'));
-        $order->setDpdCountry($quote->getData('dpd_parcelshop_country'));
+        if ('dpd_dpd' === $order->getShippingMethod()) {
+            $order->setDpdShippingProduct($quote->getData('dpd_shipping_product'));
+        }
     }
 }

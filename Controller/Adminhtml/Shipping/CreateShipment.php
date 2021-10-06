@@ -92,9 +92,16 @@ class CreateShipment extends Action
             }
 
             $labelPDFs = array();
-
             foreach($shipments as $shipment) {
                 $order = $shipment->getOrder();
+                if ($this->dataHelper->hasDpdFreshProducts($order)) {
+                    $this->messageManager->addErrorMessage(
+                        __('DPD - This is a DPD Fresh order. These cannot be shipped using this method.')
+                    );
+
+                    return $this->_redirect($this->_redirect->getRefererUrl());
+                }
+
                 if ($this->dataHelper->isDPDOrder($order)) {
                     $label = $this->dataHelper->generateShippingLabel($order, $shipment);
 

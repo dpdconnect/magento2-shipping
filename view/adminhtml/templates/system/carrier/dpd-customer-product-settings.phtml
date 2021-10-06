@@ -1,0 +1,227 @@
+<?php
+/** @var \DpdConnect\Shipping\Block\Adminhtml\System\Carrier\DpdCustomerProductSettings $block */
+?>
+<style>
+    .dpd-accordion {
+        border-radius: 10px;
+        border: 1px solid #dddddd;
+        margin: 5px 20px;
+        padding: 10px;
+    }
+
+    .dpd-accordion .dpd-accordion-header {
+        cursor: pointer;
+        position: relative;
+    }
+
+    .dpd-accordion .dpd-content {
+        display: none;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .dpd-accordion h2 {
+        margin: 0;
+    }
+
+    .dpd-row {
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .dpd-enabled-indicator {
+        background: #bd0303;
+        border-radius: 50%;
+        height: 16px;
+        width: 16px;
+        margin-right: 10px;
+        display: inline-block;
+    }
+
+    .dpd-enabled-indicator.enabled {
+        background: #00a600;
+    }
+</style>
+
+<script>
+    require(['jquery'], function($) {
+        $(document).ready(function () {
+            $('.dpd-accordion-header').on('click', function (e) {
+                $(this).parent().find('.dpd-content').toggle();
+            });
+
+            $('.dpd-rate-select').on('change', function (e) {
+                $(this).parents('.dpd-content').find('.dpd-flat-rate').hide();
+                $(this).parents('.dpd-content').find('.dpd-table-rate').hide();
+                $(this).parents('.dpd-content').find('.dpd-' + $(this).val() + '-rate').show();
+            }).trigger('change');
+        });
+    });
+</script>
+
+<?php foreach ($block->getCustomerProducts() as $product): ?>
+    <div class="dpd-accordion">
+        <div class="dpd-accordion-header">
+            <h2><div class="dpd-enabled-indicator<?php echo('1' === $block->getSettingsValue($product['code'], 'enabled', '0') ? ' enabled' : '') ?>"></div> <?php echo $product['name'] ?></h2>
+        </div>
+        <div class="dpd-content">
+
+            <div class="dpd-row">
+                <div class="label">Enabled</div>
+                <div class="value">
+                    <select
+                        class="select admin__control-select"
+                        name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][enabled]">
+                        <option
+                            value="0"<?php echo('0' === $block->getSettingsValue($product['code'], 'enabled', '0') ? 'selected' : '') ?>>
+                            No
+                        </option>
+                        <option
+                            value="1"<?php echo('1' === $block->getSettingsValue($product['code'], 'enabled', '0') ? 'selected' : '') ?>>
+                            Yes
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Title</div>
+                <div class="value">
+                    <input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_displayName"
+                           name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][title]"
+                           value="<?php echo $block->getSettingsValue($product['code'], 'title', $product['name']) ?>"
+                           class=" input-text admin__control-text" type="text">
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Rate Type</div>
+                <div class="value">
+                    <select
+                        class="select admin__control-select dpd-rate-select"
+                        name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][rateType]">
+                        <option
+                            value="flat"<?php echo('flat' === $block->getSettingsValue($product['code'], 'rateType', 'flat') ? 'selected' : '') ?>>
+                            Flat
+                        </option>
+                        <option
+                            value="table"<?php echo('table' === $block->getSettingsValue($product['code'], 'rateType', 'flat') ? 'selected' : '') ?>>
+                            Table
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dpd-row dpd-table-rate">
+                <div class="label">Condition</div>
+                <div class="value">
+                    <select
+                        class="select admin__control-select"
+                        name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][conditionName]">
+                        <option
+                            value="package_weight"<?php echo('package_weight' === $block->getSettingsValue($product['code'], 'conditionName', 'package_weight') ? 'selected' : '') ?>>
+                            Weight vs. Destination
+                        </option>
+                        <option
+                            value="package_value_with_discount"<?php echo('package_value_with_discount' === $block->getSettingsValue($product['code'], 'conditionName', 'package_weight') ? 'selected' : '') ?>>
+                            Price vs. Destination
+                        </option>
+                        <option
+                            value="package_qty"<?php echo('package_qty' === $block->getSettingsValue($product['code'], 'conditionName', 'package_weight') ? 'selected' : '') ?>>
+                            # of Items vs. Destination
+                        </option>
+                    </select>
+                </div>
+            </div>
+            <?php if (true === $block->isWebsiteConfig()): ?>
+            <div class="dpd-row dpd-table-rate">
+                <div class="label">Export</div>
+                <div class="value">
+                    <a href="<?php echo $block->getExportUrl(sprintf('dpd_%s', $product['code']), $block->getSettingsValue($product['code'], 'conditionName', 'package_weight')) ?>/tablerate.csv" title="Export CSV" type="button" class="action-default scalable">
+                        <span>Export CSV</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="dpd-row dpd-table-rate">
+                <div class="label">Import</div>
+                <div class="value">
+                    <input type="file" name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][import]">
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <div class="dpd-row dpd-flat-rate">
+                <div class="label">Price</div>
+                <div class="value">
+                    <input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_price"
+                           name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][price]"
+                           value="<?php echo $block->getSettingsValue($product['code'], 'price', '0') ?>"
+                           class="input-text admin__control-text" type="number">
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Shown days</div>
+                <div class="value">
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_monday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="1"
+                                  type="checkbox" <?php echo(in_array('1', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Monday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_tuesday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="2"
+                                  type="checkbox" <?php echo(in_array('2', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Tuesday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_wednesday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="3"
+                                  type="checkbox" <?php echo(in_array('3', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Wednesday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_thursday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="4"
+                                  type="checkbox" <?php echo(in_array('4', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Thursday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_friday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="5"
+                                  type="checkbox" <?php echo(in_array('5', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Friday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_saturday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="6"
+                                  type="checkbox" <?php echo(in_array('6', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Saturday </label><br/>
+                    <label><input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_shown_days_sunday"
+                                  name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][days][]"
+                                  value="7"
+                                  type="checkbox" <?php echo(in_array('7', $block->getSettingsValue($product['code'], 'days', [])) ? 'checked' : '') ?>>
+                        Sunday</label>
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Time from</div>
+                <div class="value">
+                    <input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_timeFrom"
+                           name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][timeFrom]"
+                           value="<?php echo $block->getSettingsValue($product['code'], 'timeFrom', '') ?>"
+                           class=" input-text admin__control-text" type="text">
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Time till</div>
+                <div class="value">
+                    <input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_timeTill"
+                           name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][timeTill]"
+                           value="<?php echo $block->getSettingsValue($product['code'], 'timeTill', '') ?>"
+                           class=" input-text admin__control-text" type="text">
+                </div>
+            </div>
+
+        </div>
+    </div>
+<?php endforeach; ?>

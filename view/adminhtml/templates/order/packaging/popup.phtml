@@ -1,0 +1,391 @@
+<?php
+/**
+ * Copyright © Magento, Inc. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+//phpcs:disable PSR2.Methods.FunctionCallSignature.SpaceBeforeOpenBracket
+//phpcs:disable Magento2.Security.IncludeFile.FoundIncludeFile
+
+/**
+ * @var $block \Magento\Shipping\Block\Adminhtml\Order\Packaging
+ */
+?>
+<?php
+$shippingMethod = $block->getShipment()->getOrder()->getShippingMethod();
+$sizeSource = $block->getSourceSizeModel()->toOptionArray();
+$girthEnabled = $block->isDisplayGirthValue() && $block->isGirthAllowed() ? 1 : 0;
+?>
+
+<script>
+    require([
+        "jquery",
+        "prototype",
+        "Magento_Shipping/order/packaging",
+        "Magento_Ui/js/modal/modal"
+    ], function(jQuery){
+
+        window.packaging = new Packaging(<?php echo $block->getConfigDataJson() ?>);
+        packaging.changeContainerType($$('select[name=package_container]')[0]);
+        packaging.checkSizeAndGirthParameter(
+            $$('select[name=package_container]')[0],
+            <?php echo $girthEnabled ?>
+        );
+        packaging.sendCreateLabelRequest = function() {
+            var self = packaging;
+
+            if (!packaging.validate()) {
+                packaging.messages.show().update(packaging.validationErrorMsg);
+
+                return;
+            }
+            packaging.messages.hide().update();
+
+            if (packaging.createLabelUrl) {
+                var weight, length, width, height = null;
+                var packagesParams = [];
+
+                packaging.packagesContent.childElements().each(function (pack) {
+                    var packageId = packaging.getPackageId(pack);
+
+                    weight = parseFloat(pack.select('input[name="container_weight"]')[0].value);
+                    length = parseFloat(pack.select('input[name="container_length"]')[0].value);
+                    width = parseFloat(pack.select('input[name="container_width"]')[0].value);
+                    height = parseFloat(pack.select('input[name="container_height"]')[0].value);
+                    packagesParams[packageId] = {
+                        container:                  pack.select('select[name="package_container"]')[0].value,
+                        customs_value:              parseFloat(pack.select('input[name="package_customs_value"]')[0].value, 10),
+                        weight:                     isNaN(weight) ? '' : weight,
+                        length:                     isNaN(length) ? '' : length,
+                        width:                      isNaN(width) ? '' : width,
+                        height:                     isNaN(height) ? '' : height,
+                        weight_units:               pack.select('select[name="container_weight_units"]')[0].value,
+                        dimension_units:            pack.select('select[name="container_dimension_units"]')[0].value,
+                        shipping_product:           pack.select('select[name="shipping_product"]')[0].value,
+                        product_type:               pack.select('input[name="product_type"]')[0].value
+                    };
+
+                    if ('undefined' != typeof pack.select('input[name="expiration_date"]')[0]) {
+                        packagesParams[packageId]['expiration_date'] = pack.select('input[name="expiration_date"]')[0].value;
+                        packagesParams[packageId]['goods_description'] = pack.select('input[name="goods_description"]')[0].value;
+                    }
+
+                    if (isNaN(packagesParams[packageId]['customs_value'])) {
+                        packagesParams[packageId]['customs_value'] = 0;
+                    }
+
+                    if ('undefined' != typeof pack.select('select[name="package_size"]')[0]) {
+                        if ('' != pack.select('select[name="package_size"]')[0].value) {
+                            packagesParams[packageId]['size'] = pack.select('select[name="package_size"]')[0].value;
+                        }
+                    }
+
+                    if ('undefined' != typeof pack.select('input[name="container_girth"]')[0]) {
+                        if ('' != pack.select('input[name="container_girth"]')[0].value) {
+                            packagesParams[packageId]['girth'] = pack.select('input[name="container_girth"]')[0].value;
+                            packagesParams[packageId]['girth_dimension_units'] = pack.select('select[name="container_girth_dimension_units"]')[0].value;
+                        }
+                    }
+
+                    if ('undefined' != typeof pack.select('select[name="content_type"]')[0] && 'undefined' != typeof pack.select('input[name="content_type_other"]')[0]) {
+                        packagesParams[packageId]['content_type'] = pack.select('select[name="content_type"]')[0].value;
+                        packagesParams[packageId]['content_type_other'] = pack.select('input[name="content_type_other"]')[0].value;
+                    } else {
+                        packagesParams[packageId]['content_type'] = '';
+                        packagesParams[packageId]['content_type_other'] = '';
+                    }
+                    var deliveryConfirmation = pack.select('select[name="delivery_confirmation_types"]');
+
+                    if (deliveryConfirmation.length) {
+                        packagesParams[packageId]['delivery_confirmation'] =  deliveryConfirmation[0].value;
+                    }
+                }.bind(packaging));
+
+                for (var packageId in packaging.packages) {
+                    if (!isNaN(packageId)) {
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[container]']              = packagesParams[packageId]['container'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[weight]']                 = packagesParams[packageId]['weight'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[customs_value]']          = packagesParams[packageId]['customs_value'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[length]']                 = packagesParams[packageId]['length'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[width]']                  = packagesParams[packageId]['width'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[height]']                 = packagesParams[packageId]['height'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[weight_units]']           = packagesParams[packageId]['weight_units'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[dimension_units]']        = packagesParams[packageId]['dimension_units'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[content_type]']           = packagesParams[packageId]['content_type'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[content_type_other]']     = packagesParams[packageId]['content_type_other'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[shipping_product]']       = packagesParams[packageId]['shipping_product'];
+                        packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[product_type]']           = packagesParams[packageId]['product_type'];
+
+                        if ('undefined' != typeof packagesParams[packageId]['expiration_date']) {
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[expiration_date]'] = packagesParams[packageId]['expiration_date'];
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[goods_description]'] = packagesParams[packageId]['goods_description'];
+                        }
+
+                        if ('undefined' != typeof packagesParams[packageId]['size']) {
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[size]'] = packagesParams[packageId]['size'];
+                        }
+
+                        if ('undefined' != typeof packagesParams[packageId]['girth']) {
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[girth]'] = packagesParams[packageId]['girth'];
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[girth_dimension_units]'] = packagesParams[packageId]['girth_dimension_units'];
+                        }
+
+                        if ('undefined' != typeof packagesParams[packageId]['delivery_confirmation']) {
+                            packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[params]' + '[delivery_confirmation]']  = packagesParams[packageId]['delivery_confirmation'];
+                        }
+
+                        for (var packedItemId in packaging.packages[packageId]['items']) {
+                            if (!isNaN(packedItemId)) {
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][qty]']           = packaging.packages[packageId]['items'][packedItemId]['qty'];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][customs_value]'] = packaging.packages[packageId]['items'][packedItemId]['customs_value'];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][price]']         = self.defaultItemsPrice[packedItemId];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][name]']          = self.defaultItemsName[packedItemId];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][weight]']        = self.defaultItemsWeight[packedItemId];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][product_id]']    = self.defaultItemsProductId[packedItemId];
+                                packaging.paramsCreateLabelRequest['packages[' + packageId + ']' + '[items]' + '[' + packedItemId + '][order_item_id]'] = self.defaultItemsOrderItemId[packedItemId];
+                            }
+                        }
+                    }
+                }
+
+                new Ajax.Request(packaging.createLabelUrl, {
+                    parameters: packaging.paramsCreateLabelRequest,
+                    onSuccess: function (transport) {
+                        var response = transport.responseText;
+
+                        if (response.isJSON()) {
+                            response = response.evalJSON();
+
+                            if (response.error) {
+                                packaging.messages.show().innerHTML = response.message;
+                            } else if (response.ok && Object.isFunction(packaging.labelCreatedCallback)) {
+                                packaging.labelCreatedCallback(response);
+                            }
+                        }
+                    }.bind(packaging)
+                });
+
+                if (packaging.paramsCreateLabelRequest['code'] &&
+                    packaging.paramsCreateLabelRequest['carrier_title'] &&
+                    packaging.paramsCreateLabelRequest['method_title'] &&
+                    packaging.paramsCreateLabelRequest['price']
+                ) {
+                    var a = packaging.paramsCreateLabelRequest['code'];
+                    var b = packaging.paramsCreateLabelRequest['carrier_title'];
+                    var c = packaging.paramsCreateLabelRequest['method_title'];
+                    var d = packaging.paramsCreateLabelRequest['price'];
+
+                    packaging.paramsCreateLabelRequest = {};
+                    packaging.paramsCreateLabelRequest['code']           = a;
+                    packaging.paramsCreateLabelRequest['carrier_title']  = b;
+                    packaging.paramsCreateLabelRequest['method_title']   = c;
+                    packaging.paramsCreateLabelRequest['price']          = d;
+                } else {
+                    packaging.paramsCreateLabelRequest = {};
+                }
+            }
+        };
+
+        packaging.packItems = function (obj) {
+            var anySelected = false;
+            var packageBlock = $(obj).up('[id^="package_block"]');
+            var packageId = packaging.getPackageId(packageBlock);
+            var packagePrepare = packageBlock.select('[data-role=package-items]')[0];
+            var packagePrepareGrid = packagePrepare.select('.grid_prepare')[0];
+
+            // check for exceeds the total shipped quantity
+            var checkExceedsQty = false;
+
+            packaging.messages.hide().update();
+            packagePrepareGrid.select('.grid tbody tr').each(function (item) {
+                var checkbox = item.select('[type="checkbox"]')[0];
+                var itemId = checkbox.value;
+                var qtyValue  = packaging._parseQty(item.select('[name="qty"]')[0]);
+
+                item.select('[name="qty"]')[0].value = qtyValue;
+
+                if (checkbox.checked && packaging._checkExceedsQty(itemId, qtyValue)) {
+                    packaging.messages.show().update(packaging.errorQtyOverLimit);
+                    checkExceedsQty = true;
+                }
+            }.bind(packaging));
+
+            if (checkExceedsQty) {
+                return;
+            }
+
+            if (!packaging.validateCustomsValue()) {
+                return;
+            }
+
+            // prepare items for packing
+            packagePrepareGrid.select('.grid tbody tr').each(function (item) {
+                var checkbox = item.select('[type="checkbox"]')[0];
+
+                if (checkbox.checked) {
+                    var qty  = item.select('[name="qty"]')[0];
+                    var qtyValue  = packaging._parseQty(qty);
+
+                    item.select('[name="qty"]')[0].value = qtyValue;
+                    anySelected = true;
+                    qty.disabled = 'disabled';
+                    checkbox.disabled = 'disabled';
+                    packagePrepareGrid.select('.grid th [type="checkbox"]')[0].up('th label').hide();
+                    item.select('[data-action=package-delete-item]')[0].show();
+                } else {
+                    item.remove();
+                }
+            }.bind(packaging));
+
+            // packing items
+            if (anySelected) {
+                var packItems = packageBlock.select('.package_items')[0];
+
+                if (!packItems) {
+                    packagePrepare.insert(new Element('div').addClassName('grid_prepare'));
+                    packagePrepare.insert({
+                        after: packagePrepareGrid
+                    });
+                    packItems = packagePrepareGrid.removeClassName('grid_prepare').addClassName('package_items');
+                    packItems.select('.grid tbody tr').each(function (item) {
+                        // Set the package type if not currently set
+                        if ("" === packageBlock.select('input[name="product_type"]')[0].value) {
+                            var productType = jQuery(item).data('product-type');
+                            packageBlock.select('input[name="product_type"]')[0].value = productType;
+
+                            // Lock the label type if needed and hide fields if needed
+                            switch(productType) {
+                                case 'fresh':
+                                    packageBlock.select('select[name="shipping_product"]')[0].value = 'FRESH';
+                                    break;
+
+                                case 'freeze':
+                                    packageBlock.select('select[name="shipping_product"]')[0].value = 'FREEZE';
+                                    break;
+
+                                case 'default':
+                                default:
+                                    packageBlock.select('.freshfreeze').each(function(item) { item.remove(); });
+                                    break;
+                            }
+                        }
+                        // Don't allow different product types in one package
+                        else if (jQuery(item).data('product_type') !== packageBlock.select('input[name="product_type"]')[0].value) {
+                            item.remove();
+                            return;
+                        }
+
+                        var itemId = item.select('[type="checkbox"]')[0].value;
+                        var qtyValue  = parseFloat(item.select('[name="qty"]')[0].value);
+
+                        qtyValue = qtyValue <= 0 ? 1 : qtyValue;
+
+                        if ('undefined' == typeof packaging.packages[packageId]) {
+                            packaging.packages[packageId] = {
+                                'items': [], 'params': {}
+                            };
+                        }
+
+                        if ('undefined' == typeof packaging.packages[packageId]['items'][itemId]) {
+                            packaging.packages[packageId]['items'][itemId] = {};
+                            packaging.packages[packageId]['items'][itemId]['qty'] = qtyValue;
+                        } else {
+                            packaging.packages[packageId]['items'][itemId]['qty'] += qtyValue;
+                        }
+                    }.bind(packaging));
+                } else {
+                    packagePrepareGrid.select('.grid tbody tr').each(function (item) {
+                        // Skip the product if the type is not the same as the package product type
+                        if (jQuery(item).data('product-type') !== packageBlock.select('input[name="product_type"]')[0].value) {
+                            item.remove();
+                            return;
+                        }
+
+                        var itemId = item.select('[type="checkbox"]')[0].value;
+                        var qtyValue  = parseFloat(item.select('[name="qty"]')[0].value);
+
+                        qtyValue = qtyValue <= 0 ? 1 : qtyValue;
+
+                        if ('undefined' == typeof packaging.packages[packageId]['items'][itemId]) {
+                            packaging.packages[packageId]['items'][itemId] = {};
+                            packaging.packages[packageId]['items'][itemId]['qty'] = qtyValue;
+                            packItems.select('.grid tbody')[0].insert(item);
+                        } else {
+                            packaging.packages[packageId]['items'][itemId]['qty'] += qtyValue;
+                            var packItem = packItems.select('[type="checkbox"][value="' + itemId + '"]')[0].up('tr').select('[name="qty"]')[0];
+
+                            packItem.value = packaging.packages[packageId]['items'][itemId]['qty'];
+                        }
+                    }.bind(packaging));
+                    packagePrepareGrid.update();
+                }
+                $(packItems).show();
+                packaging._recalcContainerWeightAndCustomsValue(packItems);
+            } else {
+                packagePrepareGrid.update();
+            }
+
+            // show/hide disable/enable
+            packagePrepare.hide();
+            packageBlock.select('[data-action=package-save-items]')[0].hide();
+            packageBlock.select('[data-action=package-add-items]')[0].show();
+            packaging._setAllItemsPackedState();
+        };
+
+        packaging.setConfirmPackagingCallback(function(){
+            packaging.setParamsCreateLabelRequest($('edit_form').serialize(true));
+            packaging.sendCreateLabelRequest();
+        });
+        packaging.setLabelCreatedCallback(function(response){
+            setLocation("<?php echo $block->escapeJs($block->getUrl(
+                'sales/order/view',
+                ['order_id' => $block->getShipment()->getOrderId()]
+            ))?>");
+        });
+        packaging.setCancelCallback(function() {
+            if ($('create_shipping_label')) {
+                packaging.cleanPackages();
+                $('create_shipping_label').checked = false;
+                toggleCreateLabelCheckbox();
+            }
+        });
+        packaging.setItemQtyCallback(function(itemId){
+            var item = $$('[name="shipment[items]['+itemId+']"]')[0],
+                itemTitle = $('order_item_' + itemId + '_title');
+            if (!itemTitle && !item) {
+                return 0;
+            }
+            if (item && !isNaN(item.value)) {
+                return item.value;
+            }
+        });
+        jQuery('#packaging_window').modal({
+            type: 'slide',
+            title: '<?php echo $block->escapeJs(__('Create Packages')) ?>',
+            buttons: [{
+                text: '<?php echo $block->escapeJs(__('Cancel')) ?>',
+                'class': 'action-secondary',
+                click: function () {
+                    packaging.cancelPackaging();
+                    this.closeModal();
+                    }
+                }, {
+                text: '<?php echo $block->escapeJs(__('Save')) ?>',
+                'attr': {'disabled':'disabled', 'data-action':'save-packages'},
+                'class': 'action-primary _disabled',
+                click: function () {
+                    packaging.confirmPackaging();
+                    }
+                }, {
+                    text: '<?php echo $block->escapeJs(__('Add Package')) ?>',
+                    'attr': {'data-action':'add-packages'},
+                    'class': 'action-secondary',
+                    click: function () {
+                        packaging.newPackage();
+                    }
+            }]
+        });
+        jQuery(document).trigger('packaging:inited');
+        jQuery(document).data('packagingInited', true);
+    });
+</script>
+<?php include($block->getTemplateFile('DpdConnect_Shipping::order/packaging/popup_content.phtml')) ?>

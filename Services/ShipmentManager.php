@@ -2,6 +2,7 @@
 
 namespace DpdConnect\Shipping\Services;
 
+use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Framework\DB\TransactionFactory;
 use Magento\Sales\Model\Convert\Order as OrderConvert;
@@ -57,11 +58,12 @@ class ShipmentManager
     }
 
     /**
-     * Ships an entire order at once, used in mass actions
-     * @param Order $order
-     * @return Shipment
+     * @param $order
+     * @param $currentRow
+     * @return Shipment|mixed
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function createShipment($order)
+    public function createShipment($order, $currentRow)
     {
         // If the order already has a shipment we return the first one
         // NOTE: This method is only called in mass actions for which we support 1 shipment per order
@@ -70,8 +72,18 @@ class ShipmentManager
         }
 
         $orderShipment = $this->orderConvert->toShipment($order);
+        $orderShipment->setData(Constants::SHIPMENT_EXTRA_DATA, $currentRow);
 
         foreach ($order->getAllVisibleItems() as $orderItem) {
+            $shippingType = $orderItem->getProduct()->getData('dpd_shipping_type');
+            if (null === $shippingType) {
+                $shippingType = 'default';
+            }
+
+            if ($currentRow && ($shippingType !== $currentRow['productType'])) {
+                continue;
+            }
+
             $qtyShipped = $orderItem->getQtyOrdered();
 
             // Create shipment item with qty
@@ -80,6 +92,24 @@ class ShipmentManager
 
             // Add shipment item to shipment
             $orderShipment->addItem($shipmentItem);
+        }
+
+        // Create the packages if necessary
+        if (isset($currentRow['packageData']) && is_array($currentRow['packageData'])) {
+            $orderShipment->setPackages($currentRow['packageData']);
+        }
+
+        // Add the shipment data if necessary
+        $data = isset($currentRow['shipmentGeneralData']) ? $currentRow['shipmentGeneralData'] : [];
+        if (isset($data['comment_text']) && !empty($data['comment_text'])) {
+            $orderShipment->addComment(
+                $data['comment_text'],
+                isset($data['comment_customer_notify']),
+                isset($data['is_visible_on_front'])
+            );
+
+            $orderShipment->setCustomerNote($data['comment_text']);
+            $orderShipment->setCustomerNoteNotify(isset($data['comment_customer_notify']));
         }
 
         $orderShipment->register();

@@ -24,4 +24,7 @@
     <event name="sales_order_address_save_before">
         <observer name="dpdconnect_shipping_sales_order_address_save_before" instance="DpdConnect\Shipping\Observer\SalesOrderAddressSaveBefore" />
     </event>
+    <event name="sales_order_shipment_save_before">
+        <observer name="dpdconnect_shipping_sales_order_shipment_save_before" instance="DpdConnect\Shipping\Observer\SalesOrderShipmentSaveBefore" />
+    </event>
 </config>

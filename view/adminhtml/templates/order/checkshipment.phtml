@@ -1,0 +1,180 @@
+<?php
+/** @var $block \DpdConnect\Shipping\Block\Adminhtml\Order\CheckShipment */
+/** @var $model \DpdConnect\Shipping\ViewModel\CheckShipment */
+$model = $block->getViewModel();
+$orders = $model->getOrders();
+
+$hasFreshFreezeOrder = false;
+foreach($orders as $order) {
+    if ($model->hasFreshFreezeProducts($order)) {
+        $hasFreshFreezeOrder = true;
+        break;
+    }
+}
+?>
+<script>
+    function validate() {
+        const form = document.getElementById('dpd_shipment_form');
+        const inputs = form.getElementsByTagName('input');
+        let errors = 0;
+        for(let i = 0; i < inputs.length; i++) {
+            const input = inputs[i];
+            const type = input.getAttribute('type');
+            if ('hidden' === type) {
+                continue;
+            }
+
+            if(null === input.value || '' === input.value) {
+                input.setAttribute('style', 'border: 1px solid #ff0000; background-color: #ffcccc;');
+                errors++;
+            } else {
+                input.removeAttribute('style');
+            }
+        }
+
+        if (errors > 0) {
+            document.getElementById('form-validation-failed').removeAttribute('style');
+            return false;
+        }
+
+        document.getElementById('form-validation-failed').setAttribute('style', 'display: none;');
+        document.getElementById('download-started').removeAttribute('style');
+
+        return true;
+    }
+</script>
+
+<form id="dpd_shipment_form" method="post" action="<?php echo $model->getPostUrl() ?>" onsubmit="return validate();">
+    <?php echo $block->getBlockHtml('formkey')?>
+    <div class="page-main-actions">
+        <div class="page-actions" data-ui-id="page-actions-toolbar-content-header">
+            <div class="page-actions-inner" data-title="Shipping Labels">
+                <div class="page-actions-buttons">
+                    <button id="back" title="Back" type="button" class="action-default scalable back" onclick="window.location.href='<?php echo $model->getOrderOverviewUrl() ?>'">
+                        <span>Back</span>
+                    </button>
+                    <button id="download" title="Download Labels" type="submit" class="action- scalable primary">
+                        <span>Download Labels</span>
+                    </button>
+               </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="messages" >
+        <div id="form-validation-failed" class="message message-error error" style="display: none;">
+            <div data-ui-id="messages-message-error">You didn't specify all of the necessary data. Please correct the red fields before continuing.</div>
+        </div>
+        <div id="download-started" class="message message-info info" style="display: none;">
+            <div data-ui-id="messages-message-info">Your labels are being created, depending on the amount of labels this can take awhile. Please wait for the labels to be downloaded by your browser before going back. <a href="<?php echo $model->getOrderOverviewUrl() ?>">Go back</a></div>
+        </div>
+    </div>
+
+    <div>
+        <table class="data-grid">
+            <thead>
+            <tr>
+                <th class="data-grid-th"><span class="data-grid-cell-content">#</span></th>
+                <th class="data-grid-th"><span class="data-grid-cell-content">Customer</span></th>
+                <th class="data-grid-th"><span class="data-grid-cell-content">Products</span></th>
+                <th class="data-grid-th"><span class="data-grid-cell-content">Label type</span></th>
+                <?php if (true === $hasFreshFreezeOrder): ?>
+                <th class="data-grid-th"><span class="data-grid-cell-content">Goods expiration date</span></th>
+                <th class="data-grid-th"><span class="data-grid-cell-content">Goods description</span></th>
+                <?php endif ?>
+            </tr>
+            </thead>
+            <tbody>
+            <?php foreach ($orders as $orderI => $order): ?>
+                <?php
+                    $rows = $model->getRows($order);
+                    foreach($rows as $rowI => $row):
+                ?>
+                <tr class="data-row<?php echo ($orderI % 2 === 0 ? '' : ' _odd-row') ?>">
+
+                    <?php if(0 === $rowI): ?>
+                    <td rowspan="<?php echo count($rows) ?>">
+                        <span class="data-grid-cell-content"><?php echo $order->getIncrementId() ?></span>
+                    </td>
+                    <td rowspan="<?php echo count($rows) ?>">
+                        <span class="data-grid-cell-content">
+                        <?php echo $order->getCustomerName() ?><br/>
+                        <?php foreach ($order->getShippingAddress()->getStreet() as $street): ?>
+                            <?php echo $street ?><br/>
+                        <?php endforeach; ?>
+                            <?php echo $order->getShippingAddress()->getPostcode() ?> <?php echo $order->getShippingAddress()->getCity() ?>
+                        </span>
+                    </td>
+                    <?php endif; ?>
+
+                    <td>
+                        <span class="data-grid-cell-content">
+                            <div style="position: relative; height: 120px;">
+                        <?php foreach($row['products'] as $productI => $product): ?>
+                            <div style="position:absolute; left: <?php echo $productI * 30 ?>px; border: 1px solid #d8d8d8; padding: 1px; background-color: #ffffff;">
+                            <?php if($product->getImage()): ?>
+                                <?php $imageUrl = $this->helper('Magento\Catalog\Helper\Image')
+                                ->init($product, 'product_page_image_small')
+                                ->constrainOnly(true)
+                                ->keepAspectRatio(true)
+                                ->keepTransparency(true)
+                                ->keepFrame(false)
+                                ->setImageFile($product->getImage())
+                                ->resize(75, 75)->getUrl(); ?>
+                                <img
+                                     src="<?php echo $imageUrl; ?>"
+                                     alt="<?php echo $product->getName() ?>"
+                                     title="<?php echo $product->getName() ?>"
+                                     onmouseenter="this.style.zIndex = 99999"
+                                     onmouseleave="this.style.zIndex = <?php echo $productI ?>"
+                                /><br />
+                            <?php endif; ?>
+                                SKU: <?php echo $product->getSKU() ?>
+                            </div>
+                        <?php endforeach; ?>
+                            </div>
+                        </span>
+                    </td>
+
+                    <td>
+                        <span class="data-grid-cell-content">
+                            <?php if($model->isParcelshopOrder($order)): ?>
+                            DPD Parcelshop Order<br />
+                            <?php elseif('FRESH' === $row['code']): ?>
+                            Fresh products<br />
+                            <?php elseif('FREEZE' === $row['code']): ?>
+                            Frozen products<br />
+                            <?php endif; ?>
+                            <input type="hidden" name="order[<?php echo $order->getId() ?>][<?php echo $rowI ?>][productType]" value="<?php echo $row['productType'] ?>" />
+                            <?php if (in_array($row['code'], ['FRESH', 'FREEZE'])): ?>
+                            <input type="hidden" name="order[<?php echo $order->getId() ?>][<?php echo $rowI ?>][code]" value="<?php echo $row['code'] ?>" />
+                            <?php else: ?>
+                            <select name="order[<?php echo $order->getId() ?>][<?php echo $rowI ?>][code]"<?php echo (in_array($row['code'], ['FRESH', 'FREEZE'])) ? ' readonly' : '' ?>>
+                                <option value=""></option>
+                <?php foreach ($model->getLabelTypeOptions($order) as $shippingProduct): ?>
+                                <option value="<?php echo $shippingProduct['code'] ?>"<?php echo $model->isSelected($order, $shippingProduct, $row) ? ' selected="selected"' : '' ?>>
+                                    <?php echo $shippingProduct['name'] ?>
+                                </option>
+                <?php endforeach; ?>
+                            </select>
+                            <?php endif; ?>
+                        </span>
+                    </td>
+
+                    <?php if(true === $hasFreshFreezeOrder): ?>
+                        <?php if (isset($row['expirationDate'])): ?>
+                    <td><input type="date" name="order[<?php echo $order->getId() ?>][<?php echo $rowI ?>][expirationDate]" value="<?php echo $row['expirationDate'] ?>" /></td>
+                    <td><input type="text" name="order[<?php echo $order->getId() ?>][<?php echo $rowI ?>][description]" value="<?php echo $row['description'] ?>" /></td>
+                        <?php else: ?>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                        <?php endif; ?>
+                    <?php endif; ?>
+
+                </tr>
+                <?php endforeach; ?>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+</form>

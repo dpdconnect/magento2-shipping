@@ -75,7 +75,31 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
         }
 
+        if (version_compare($context->getVersion(), '1.0.8') < 0) {
+            $this->createDpdCarrierFieldsInQuote($setup);
+        }
+
         $setup->endSetup();
+    }
+
+    private function createDpdCarrierFieldsInQuote(SchemaSetupInterface $setup)
+    {
+        $parcelshopColumns = [
+            'dpd_shipping_product' => [
+                'type' => Table::TYPE_TEXT,
+                'nullable' => true,
+                'comment' => 'DPD ShippingProduct Code',
+            ],
+        ];
+
+        $quoteTable = $setup->getTable('quote');
+        $connection = $setup->getConnection();
+
+        foreach ($parcelshopColumns as $columnName => $options) {
+            if ($connection->tableColumnExists($quoteTable, $columnName) === false) {
+                $connection->addColumn($quoteTable, $columnName, $options);
+            }
+        }
     }
 
     private function createParcelShopFieldsInQuote(SchemaSetupInterface $setup)

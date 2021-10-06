@@ -20,7 +20,7 @@
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="dpdclassic" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>DPD Classic</label>
+        <label>DPD Classic (DEPRECATED)</label>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -33,10 +33,10 @@
                showInStore="1">
             <label>Method Name</label>
         </field>
-		<field id="rate_type" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
-			<label>Rate Type</label>
-			<source_model>DpdConnect\Shipping\Config\Source\Settings\RateType</source_model>
-		</field>
+        <field id="rate_type" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
+            <label>Rate Type</label>
+            <source_model>DpdConnect\Shipping\Config\Source\Settings\RateType</source_model>
+        </field>
         <field id="condition_name" translate="label" type="select" sortOrder="10" showInDefault="0" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Condition</label>
             <source_model>Magento\OfflineShipping\Model\Config\Source\Tablerate</source_model>
@@ -51,9 +51,9 @@
         <field id="price" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Price</label>
             <validate>validate-number validate-zero-or-greater</validate>
-			<depends>
-				<field id="rate_type">flat</field>
-			</depends>
+            <depends>
+                <field id="rate_type">flat</field>
+            </depends>
         </field>
         <field id="sort_order" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1"
                showInStore="0">

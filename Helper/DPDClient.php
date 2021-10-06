@@ -86,8 +86,7 @@ class DPDClient extends AbstractHelper
      */
     public function authenticate()
     {
-        // TODO: Add URL to the ClientBuilder
-        $url = Client::ENDPOINT;
+        $url = $this->dpdSettings->getValue(DpdSettings::API_ENDPOINT);
         $pluginVersion = $this->moduleList
             ->getOne(self::MODULE_NAME)['setup_version'];
 

@@ -68,13 +68,12 @@ class SalesOrderAddressSaveBefore implements ObserverInterface
             return;
         }
 
-
         $shippingAddress->setFirstname('DPD ParcelShop:');
-        $shippingAddress->setLastname($order->getDpdCompany());
-        $shippingAddress->setStreet($order->getDpdStreet());
-        $shippingAddress->setCity($order->getDpdCity());
-        $shippingAddress->setPostcode($order->getDpdZipcode());
-        $shippingAddress->setCountryId($order->getDpdCountry());
+        $shippingAddress->setLastname($order->getDpdParcelshopName());
+        $shippingAddress->setStreet($order->getDpdParcelshopStreet().' '.$order->getDpdParcelshopHouseNumber());
+        $shippingAddress->setCity($order->getDpdParcelshopCity());
+        $shippingAddress->setPostcode($order->getDpdParcelshopZipCode());
+        $shippingAddress->setCountryId($order->getDpdParcelshopCountry());
         $shippingAddress->setCompany('');
 
         if($this->scopeConfig->getValue('dpdshipping/account_settings/picqer_mode')) {

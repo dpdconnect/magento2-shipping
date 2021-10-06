@@ -19,19 +19,17 @@
  */
 namespace DpdConnect\Shipping\Helper\Services;
 
+use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\App\Helper\AbstractHelper;
 use DpdConnect\Shipping\Helper\DPDClient;
 use Magento\Framework\App\Helper\Context;
+use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order;
 
 class OrderConvertService extends AbstractHelper
 {
-    /**
-     * @var DPDClient
-     */
-    private $DPDClient;
     /**
      * @var DpdSettings
      */
@@ -40,10 +38,6 @@ class OrderConvertService extends AbstractHelper
      * @var OrderService
      */
     private $orderService;
-    /**
-     * @var ProductFactory
-     */
-    private $productFactory;
 
     /**
      * OrderConvertService constructor.
@@ -61,77 +55,68 @@ class OrderConvertService extends AbstractHelper
         ProductFactory $productFactory
     ) {
         parent::__construct($context);
-        $this->DPDClient = $DPDClient;
         $this->dpdSettings = $dpdSettings;
         $this->orderService = $orderService;
-        $this->productFactory = $productFactory;
     }
 
     /**
-     * @param bool $return
+     * @param Order $order
+     * @param bool  $return
+     *
      * @return string
      */
-    private function getProductCode(bool $return = false)
+    private function getProductCode(Order $order, ?Order\Shipment $shipment = null, bool $return = false)
     {
-        if ($return === true && !$this->orderService->isDPDSaturdayOrder()) {
+        if ($return === true) {
             return 'RETURN';
         }
 
-        if ($this->orderService->isDPDExpress10Order()) {
-            return 'E10';
+        // Backwards compatibility checks
+        if (Constants::CARRIER_DPD !== $order->getShippingMethod() && false === $this->orderService->isDPDPickupOrder()) {
+            switch($order->getShippingMethod()) {
+                case 'dpdexpress10_dpdexpress10':
+                    return 'E10';
+
+                case 'dpdexpress12_dpdexpress12':
+                    return 'E12';
+
+                case 'dpdguarantee18_dpdguarantee18':
+                    return 'E18';
+
+                default:
+                    return 'CL';
+            }
         }
 
-        if ($this->orderService->isDPDExpress12Order()) {
-            return 'E12';
+        // Fetch the code from the shipment, if any, else default to the order code
+        if ($shipment && $shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+            return $shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'];
         }
 
-        if ($this->orderService->isDPDGuarantee18Order()) {
-            return 'E18';
-        }
-
-        return 'CL';
+        return $order->getDpdShippingProduct();
     }
 
-
+    /**
+     * @param Order $order
+     *
+     * @return array
+     */
     public function getReceiverData(Order $order)
     {
         if ($this->orderService->isDPDPickupOrder()) {
             $billingAddress = $order->getBillingAddress();
-
-            $street = $billingAddress->getStreet();
-            $fullStreet = implode(' ', $street);
-
-            $recipient = array(
-                'name1'             => $billingAddress->getFirstname() . ' ' . $billingAddress->getLastname(),
-                'name2'             => $billingAddress->getCompany(),
-                'street'            => $fullStreet,
-                'houseNo'           => '',
-                'postalcode'        => strtoupper(str_replace(' ', '', $billingAddress->getPostcode())),
-                'city'              => $billingAddress->getCity(),
-                'country'           => $billingAddress->getCountryId(),
-                'phoneNumber'       => $billingAddress->getTelephone(),
-                'email'             => $order->getCustomerEmail(),
-                'commercialAddress' => false
-            );
+            $recipient = $this->processAddress($billingAddress);
         } else {
-            $shippingAddress = $order->getShippingAddress();
-
-            $street = $shippingAddress->getStreet();
-            $fullStreet = implode(' ', $street);
-
-            $recipient = array(
-                'name1'             => $shippingAddress->getFirstname() . ' ' . $shippingAddress->getLastname(),
-                'name2'             => $shippingAddress->getCompany(),
-                'street'            => $fullStreet,
-                'houseNo'           => '',
-                'postalcode'        => strtoupper(str_replace(' ', '', $shippingAddress->getPostcode())),
-                'city'              => $shippingAddress->getCity(),
-                'country'           => $shippingAddress->getCountryId(),
-                'phoneNumber'       => $shippingAddress->getTelephone(),
-                'email'             => $order->getCustomerEmail(),
-                'commercialAddress' => false
-            );
+            // Check if the order was changed from Parcelshop to a different method
+            if (Constants::CARRIER_PARCELSHOP === $order->getShippingMethod()) {
+                $billingAddress = $order->getBillingAddress();
+                $recipient = $this->processAddress($billingAddress);
+            } else {
+                $shippingAddress = $order->getShippingAddress();
+                $recipient = $this->processAddress($shippingAddress);
+            }
         }
+        $recipient['email'] = $order->getCustomerEmail();
 
         return $recipient;
     }
@@ -165,31 +150,50 @@ class OrderConvertService extends AbstractHelper
 
     /**
      * @param Order $order
+     * @param Order\Shipment|null $shipment
      * @param bool $isReturn
      * @param int $parcelAmount
      * @return array
      */
-    public function addParcels(Order $order, bool $isReturn = false, int $parcelAmount = 1)
+    public function addParcels(Order $order, ?Order\Shipment $shipment = null, bool $isReturn = false, int $parcelAmount = 1)
     {
         $parcels = [];
 
         for ($x = 1; $x <= $parcelAmount; $x++) {
             $orderWeight = $this->getOrderWeight($order) / $parcelAmount;
-            $parcels[] = [
+            $parcel = [
                 'customerReferences' => [
                     $order->getIncrementId() ?? '',
                     ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID) ? $order->getEntityId() : ''),
-                    $order->getDpdParcelshopId() ?? ''
+                    $order->getDpdParcelshopId() ?? '',
+                    $shipment->getEntityId() ?? '',
                 ],
                 'weight' => (int) $orderWeight,
                 'returns' => $isReturn,
             ];
+
+            if (null !== $shipment && $shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+                $extradata = $shipment->getData(Constants::SHIPMENT_EXTRA_DATA);
+                if (isset($extradata['expirationDate']) && isset($extradata['description'])) {
+                    $parcel['goodsExpirationDate'] = intval(str_replace('-', '', $extradata['expirationDate']));
+                    $parcel['goodsDescription'] = $extradata['description'];
+                }
+            }
+
+            $parcels[] = $parcel;
         }
 
         return $parcels;
     }
 
-    public function addParcelsFromPackages(Order $order, $packages)
+    /**
+     * @param Order $order
+     * @param Order\Shipment|null $shipment
+     * @param $packages
+     * @return array
+     * @throws \Zend_Measure_Exception
+     */
+    public function addParcelsFromPackages(Order $order, ?Order\Shipment $shipment = null, $packages)
     {
         $parcels = [];
 
@@ -201,26 +205,40 @@ class OrderConvertService extends AbstractHelper
             $unit = new \Zend_Measure_Weight($weight, $unit);
             $unit->convertTo(\Zend_Measure_Weight::KILOGRAM, 2);
             $weight = round(floatval($unit->getValue(2)) * 100, 0);
-            $parcels[] = [
+            $parcel = [
                 'customerReferences' => [
+                    $order->getIncrementId() ?? '',
                     ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID) ? $order->getIncrementId() : ''),
-                    $order->getDpdParcelshopId() ?? ''
+                    $order->getDpdParcelshopId() ?? '',
+                    $shipment->getEntityId(),
                 ],
                 'weight' => (int)$weight,
             ];
+            if (null !== $shipment && $shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+                $extradata = $shipment->getData(Constants::SHIPMENT_EXTRA_DATA);
+                if (isset($extradata['expirationDate']) && isset($extradata['description'])) {
+                    $parcel['goodsExpirationDate'] = intval(str_replace('-', '', $extradata['expirationDate']));
+                    $parcel['goodsDescription'] = $extradata['description'];
+                }
+            }
+
+            $parcels[] = $parcel;
         }
         return $parcels;
     }
 
     /**
      * @param Order $order
+     * @param Order\Shipment|null $orderShipment
      * @param bool $isReturn
-     * @param int $parcels
+     * @param array $packages
+     * @param bool $useCustoms
      * @return array
      */
-    public function convert(Order $order, bool $isReturn = false, $packages = [], $useCustoms = false)
+    public function convert(Order $order, ?Order\Shipment $orderShipment = null, bool $isReturn = false, $packages = [], $useCustoms = false)
     {
         $this->orderService->setOrder($order);
+        $this->orderService->setShipment($orderShipment);
 
         $shipment = [
             'orderId' => $order->getIncrementId(),
@@ -241,7 +259,7 @@ class OrderConvertService extends AbstractHelper
             ],
             'receiver' => $this->getReceiverData($order),
             'product' => [
-                'productCode' => $this->getProductCode($isReturn),
+                'productCode' => $this->getProductCode($order, $orderShipment, $isReturn),
                 'saturdayDelivery' => ($this->orderService->isDPDSaturdayOrder() && !$isReturn),
                 'homeDelivery' => $this->orderService->isDPDPredictOrder() || $this->orderService->isDPDSaturdayOrder(),
                 'ageCheck' => $this->orderService->isAgeCheckOrder()
@@ -272,9 +290,9 @@ class OrderConvertService extends AbstractHelper
         // shipment
 
         if (is_array($packages)) {
-            $shipment['parcels'] = $this->addParcelsFromPackages($order, $packages);
+            $shipment['parcels'] = $this->addParcelsFromPackages($order, $orderShipment, $packages);
         } else {
-            $shipment['parcels'] = $this->addParcels($order, $isReturn, 1);
+            $shipment['parcels'] = $this->addParcels($order, $orderShipment, $isReturn, 1);
         }
 
         if (!$isReturn) {
@@ -332,5 +350,29 @@ class OrderConvertService extends AbstractHelper
         }
 
         return $customsLines;
+    }
+
+    /**
+     * @param OrderAddressInterface $address
+     *
+     * @return array
+     */
+    private function processAddress(OrderAddressInterface $address): array
+    {
+        $street = $address->getStreet();
+        $fullStreet = implode(' ', $street);
+
+        return array(
+            'name1'             => $address->getFirstname() . ' ' . $address->getLastname(),
+            'name2'             => $address->getCompany(),
+            'street'            => $fullStreet,
+            'houseNo'           => '',
+            'postalcode'        => strtoupper(str_replace(' ', '', $address->getPostcode())),
+            'city'              => $address->getCity(),
+            'country'           => $address->getCountryId(),
+            'phoneNumber'       => $address->getTelephone(),
+            'email'             => '',
+            'commercialAddress' => false
+        );
     }
 }

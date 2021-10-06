@@ -32,7 +32,7 @@
                                     <item name="children" xsi:type="array">
                                         <item name="shipping-step" xsi:type="array">
                                             <item name="children" xsi:type="array">
-                                                
+
                                             </item>
                                         </item>
                                     </item>
@@ -47,6 +47,14 @@
 											</item>
 											<item name="displayArea" xsi:type="string">shipping-information</item>
 										</item>
+
+                                        <item name="dpdconnect-carrier-info" xsi:type="array">
+                                            <item name="component" xsi:type="string">DpdConnect_Shipping/js/view/checkout/shipping/dpd</item>
+                                            <item name="config" xsi:type="array">
+                                                <item name="deps" xsi:type="string">checkout.steps.shipping-step.shippingAddress</item>
+                                            </item>
+                                            <item name="displayArea" xsi:type="string">shipping-information</item>
+                                        </item>
 									</item>
 								</item>
 

@@ -102,48 +102,86 @@ class Data extends AbstractHelper
      */
     public function generateShippingLabel(Order $order, Order\Shipment $shipment = null, $parcels = 1, $isReturn = false)
     {
-        // If no shipment is provided we create one (or if it exists we fetch the first one)
-        if ($shipment === null) {
-            $shipment = $this->shipmentManager->createShipment($order);
-        }
-
         $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL);
 
-        if(count($shipment->getPackages()) > 0) {
+        // New way of processing batch requests
+        if($order->hasData(Constants::ORDER_EXTRA_SHIPPING_DATA)) {
+            $pdfResult = [];
+            $shipmentRows = $order->getData(Constants::ORDER_EXTRA_SHIPPING_DATA);
+            foreach ($shipmentRows as $shipmentRow) {
+                // Shipment is always NULL when shipment rows is set (ONLY used when using the batch method of creating labels)
+                $shipment = $this->shipmentManager->createShipment($order, $shipmentRow);
+                $shipment->setData(Constants::SHIPMENT_EXTRA_DATA, $shipmentRow); // Use this to move data around more efficiently
 
-            $resultLabels = $this->shipmentLabel->generateLabelMultiPackage(
-                $order,
-                $isReturn,
-                $shipment,
-                $shipment->getPackages(),
-                $includeReturnLabel
-            );
-        } else {
+                // Create label for each row
+                $resultLabels = $this->shipmentLabel->generateLabel(
+                    $order,
+                    $isReturn,
+                    $shipment,
+                    $parcels,
+                    $includeReturnLabel
+                );
 
-            $resultLabels = $this->shipmentLabel->generateLabel(
-                $order,
-                $isReturn,
-                $shipment,
-                $parcels,
-                $includeReturnLabel
-            );
-        }
-//        $shipment->getResource()->save($shipment);
+                // Add the tracking numbers
+                $parcelNumbers = [];
+                foreach ($resultLabels as $resultLabel) {
+                    foreach ($resultLabel['parcelNumbers'] as $parcelNumber) {
+                        $parcelNumbers[] = $parcelNumber;
+                    }
+                }
 
-        $parcelNumbers = [];
-        foreach ($resultLabels as $resultLabel) {
-            foreach ($resultLabel['parcelNumbers'] as $parcelNumber) {
-                $parcelNumbers[] = $parcelNumber;
+                $this->shipmentManager->addTrackingNumbersToShipment($shipment, $parcelNumbers);
+
+                // Add the labels to the result
+                foreach ($resultLabels as $label) {
+                    $pdfResult[] = base64_decode($label['label']);
+                }
             }
         }
 
+        // Default to the old method of making shipments
+        else {
+            // If no shipment is provided we create one (or if it exists we fetch the first one)
+            if ($shipment === null) {
+                $shipment = $this->shipmentManager->createShipment($order, null);
+            }
 
-        $this->shipmentManager->addTrackingNumbersToShipment($shipment, $parcelNumbers);
+            if (count($shipment->getPackages()) > 0) {
 
-        // Merge the pdf request if a return label was found
-        $pdfResult = [];
-        foreach ($resultLabels as $label) {
-            $pdfResult[] = base64_decode($label['label']);
+                $resultLabels = $this->shipmentLabel->generateLabelMultiPackage(
+                    $order,
+                    $isReturn,
+                    $shipment,
+                    $shipment->getPackages(),
+                    $includeReturnLabel
+                );
+            } else {
+
+                $resultLabels = $this->shipmentLabel->generateLabel(
+                    $order,
+                    $isReturn,
+                    $shipment,
+                    $parcels,
+                    $includeReturnLabel
+                );
+            }
+            //        $shipment->getResource()->save($shipment);
+
+            $parcelNumbers = [];
+            foreach ($resultLabels as $resultLabel) {
+                foreach ($resultLabel['parcelNumbers'] as $parcelNumber) {
+                    $parcelNumbers[] = $parcelNumber;
+                }
+            }
+
+
+            $this->shipmentManager->addTrackingNumbersToShipment($shipment, $parcelNumbers);
+
+            // Merge the pdf request if a return label was found
+            $pdfResult = [];
+            foreach ($resultLabels as $label) {
+                $pdfResult[] = base64_decode($label['label']);
+            }
         }
 
         return $pdfResult;
@@ -156,12 +194,6 @@ class Data extends AbstractHelper
     public function generateShippingLabelAsync(array $orders)
     {
         $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL);
-
-        foreach ($orders as $order) {
-            // Gets the first shipment OR creates a new shipment
-            $this->shipmentManager->createShipment($order);
-        }
-
         $jobs = $this->shipmentLabel->generateLabelAsync($orders, $includeReturnLabel);
 
         $batch = $this->batchManager->createNewBatch();
@@ -184,6 +216,23 @@ class Data extends AbstractHelper
         $shippingMethod = $order->getShippingMethod();
 
         return (strpos($shippingMethod, 'dpd') === 0);
+    }
+
+    /**
+     * @param Order $order
+     *
+     * @return bool
+     */
+    public function hasDpdFreshProducts(Order $order)
+    {
+        $orderItems = $order->getAllVisibleItems();
+        foreach($orderItems as $orderItem) {
+            if (in_array($orderItem->getProduct()->getData('dpd_shipping_type'), ['fresh', 'freeze'])) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

@@ -76,6 +76,7 @@ class Export extends \Magento\Config\Controller\Adminhtml\System\AbstractConfig
         }
         $gridBlock->setWebsiteId($website->getId())->setConditionName($conditionName)->setShippingMethod($shippingMethod);
         $content = $gridBlock->getCsvFile();
+
         return $this->_fileFactory->create($fileName, $content, DirectoryList::VAR_DIR);
     }
 }

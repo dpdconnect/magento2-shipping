@@ -19,6 +19,7 @@
  */
 namespace DpdConnect\Shipping\Controller\Adminhtml\Order;
 
+use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\Data;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
@@ -27,6 +28,7 @@ use DpdConnect\Shipping\Services\BatchManager;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Filesystem\DirectoryList;
+use Magento\Framework\App\Request\Http;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\Controller\Result\Redirect;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -69,15 +71,21 @@ class CreateShipment extends Action
     private $batchManager;
 
     /**
-     * @param Context $context
-     * @param Filter $filter
-     * @param OrderCollectionFactory $collectionFactory
-     * @param Data $dataHelper
-     * @param ShipmentLabelFactory $shipmentLabelFactory
-     * @param FileFactory $fileFactory
-     * @param DpdSettings $dpdSettings
-     * @param BatchManager $batchManager
-     * @param ShipmentLabelService $shipmentLabelService
+     * @var \Magento\Sales\Api\OrderRepositoryInterface
+     */
+    private $orderRepository;
+
+    /**
+     * @param Context                                     $context
+     * @param Filter                                      $filter
+     * @param OrderCollectionFactory                      $collectionFactory
+     * @param Data                                        $dataHelper
+     * @param ShipmentLabelFactory                        $shipmentLabelFactory
+     * @param FileFactory                                 $fileFactory
+     * @param DpdSettings                                 $dpdSettings
+     * @param BatchManager                                $batchManager
+     * @param ShipmentLabelService                        $shipmentLabelService
+     * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
         Context $context,
@@ -88,7 +96,8 @@ class CreateShipment extends Action
         FileFactory $fileFactory,
         DpdSettings $dpdSettings,
         BatchManager $batchManager,
-        ShipmentLabelService $shipmentLabelService
+        ShipmentLabelService $shipmentLabelService,
+        \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
@@ -98,17 +107,28 @@ class CreateShipment extends Action
         parent::__construct($context);
         $this->dpdSettings = $dpdSettings;
         $this->batchManager = $batchManager;
+        $this->orderRepository = $orderRepository;
     }
 
     public function execute()
     {
         try {
-            $collection = $this->collectionFactory->create();
-            $collection = $this->filter->getCollection($collection);
-
+            $totalLabels = 0;
             $orders = [];
-            /** @var OrderInterface[] $order */
-            foreach ($collection as $order) {
+            foreach($this->getRequest()->getPostValue('order') as $orderId => $shippingProductData) {
+                $rows = [];
+                foreach($shippingProductData as $row) {
+                    if ('' === $row['code']) {
+                        continue;
+                    }
+
+                    $rows[] = $row;
+                    $totalLabels++;
+                }
+
+                $order = $this->orderRepository->get($orderId);
+                $order->setData(Constants::ORDER_EXTRA_SHIPPING_DATA, $rows);
+
                 $orders[] = $order;
             }
 
@@ -117,25 +137,14 @@ class CreateShipment extends Action
 
             // If the async requests is enabled and the selected order count is bigger than the threshold
             // we create a new batch and simply redirect to the sales order grid with a message
-            if ($isAsyncEnabled && $collection->getSize() > $asyncThreshold) {
+            if ($isAsyncEnabled && $totalLabels > $asyncThreshold) {
                 $jobs = $this->dataHelper->generateShippingLabelAsync($orders);
-                $this->messageManager->addSuccessMessage(sprintf(__('A batch with a total of %s orders are created.'), count($jobs)));
+                $this->messageManager->addSuccessMessage(sprintf(__('A batch with a total of %s orders is created.'), count($jobs)));
                 return $this->_redirect($this->_redirect->getRefererUrl());
             }
 
             $labelPDFs = [];
             foreach ($orders as $order) {
-                if (!$this->dataHelper->isDPDOrder($order)) {
-                    continue;
-                }
-
-                if ($order->getShipmentsCollection()->count() > 1) {
-                    $this->messageManager->addErrorMessage(
-                        sprintf(__('Order %s has more than 1 shipment, go the the shipment overview to generate a label.'), $order->getIncrementId())
-                    );
-                    continue;
-                }
-
                 $label = $this->dataHelper->generateShippingLabel($order);
                 $labelPDFs = array_merge($labelPDFs, $label);
             }
