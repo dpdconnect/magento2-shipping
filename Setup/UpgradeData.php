@@ -71,10 +71,99 @@ class UpgradeData implements UpgradeDataInterface
             $this->createAgeCheckProductAttributes($setup);
         }
 
+        if (version_compare($context->getVersion(), '1.0.7') < 0) {
+            $this->createDpdFreshProductAttributes($setup);
+        }
+
+        if (version_compare($context->getVersion(), '1.0.8') < 0) {
+            $this->createDpdCarrierFieldsInQuote($setup);
+        }
+
         /**
          * Prepare database after install
          */
         $setup->endSetup();
+    }
+
+    private function createDpdCarrierFieldsInQuote(ModuleDataSetupInterface $setup)
+    {
+        $salesInstaller = $this->salesSetupFactory->create(['resourceName' => 'sales_setup', 'setup' => $setup]);
+
+        // Same columns as with UpgradeSchema in the Quote table
+        $parcelshopColumns = [
+            'dpd_shipping_product' => [
+                'type' => 'varchar',
+                'visible' => false,
+                'default' => '',
+            ],
+        ];
+
+        foreach ($parcelshopColumns as $columnName => $options) {
+            $salesInstaller->addAttribute(
+                Order::ENTITY,
+                $columnName,
+                $options
+            );
+        }
+    }
+
+    private function createDpdFreshProductAttributes(ModuleDataSetupInterface $setup)
+    {
+        $eavSetup = $this->eavSetupFactory->create(['setup' => $setup]);
+
+        $eavSetup->addAttribute(
+            Product::ENTITY,
+            'dpd_shipping_type',
+            [
+                'type' => 'varchar',
+                'backend' => '',
+                'frontend' => '',
+                'label' => 'DPD Shipping Product',
+                'input' => 'select',
+                'class' => '',
+                "source"   => 'DpdConnect\Shipping\Model\Attribute\Source\ShippingType',
+                'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible' => true,
+                'required' => false,
+                'user_defined' => true,
+                'default' => 'default',
+                'searchable' => false,
+                'filterable' => false,
+                'comparable' => false,
+                'visible_on_front' => false,
+                'used_in_product_listing' => false,
+                'unique' => false,
+                'apply_to' => '',
+                'group' => 'DPD Product Attributes',
+            ]
+        );
+
+        $eavSetup->addAttribute(
+            Product::ENTITY,
+            'dpd_fresh_description',
+            [
+                'type' => 'varchar',
+                'backend' => 'DpdConnect\Shipping\Model\Attribute\Backend\ShippingDescription',
+                'frontend' => '',
+                'label' => 'DPD Fresh Shipping Description',
+                'input' => 'text',
+                'class' => '',
+                "source"   => '',
+                'global' => ScopedAttributeInterface::SCOPE_GLOBAL,
+                'visible' => true,
+                'required' => false,
+                'user_defined' => true,
+                'default' => '',
+                'searchable' => false,
+                'filterable' => false,
+                'comparable' => false,
+                'visible_on_front' => false,
+                'used_in_product_listing' => false,
+                'unique' => false,
+                'apply_to' => '',
+                'group' => 'DPD Product Attributes',
+            ]
+        );
     }
 
     private function createAgeCheckProductAttributes(ModuleDataSetupInterface $setup)

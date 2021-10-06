@@ -19,7 +19,7 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <group id="dpdpickup" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
-        <label>DPD Pickup</label>
+        <label>DPD Parcelshop</label>
         <field id="active" translate="label" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Enabled</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
@@ -56,13 +56,14 @@
         <field id="sort_order" translate="label" type="text" sortOrder="90" showInDefault="1" showInWebsite="1" showInStore="0">
             <label>Sort Order</label>
         </field>
-        <field id="google_maps_api_client" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Google Maps Server client key</label>
-            <comment><![CDATA[This key is sent to your visitors browser and is used to render Google Maps in the checkout so visitors can select a parcelshop. <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">More info</a>]]></comment>
+        <field id="use_dpd_maps_key" translate="label" type="select" sortOrder="95" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Use Google Maps Key of DPD</label>
+            <comment><![CDATA[These may be subject to rate limiting, high volume users should use their own Google keys]]></comment>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
-        <field id="google_maps_api_server" translate="label" type="text" sortOrder="101" showInDefault="1" showInWebsite="1" showInStore="1">
-            <label>Google Maps server key</label>
-            <comment><![CDATA[This key is used for requesting Geographical coordinates based on zipcodes. This key remains on the server. <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">More info</a>]]></comment>
+        <field id="google_maps_api_client" translate="label" type="text" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Google Maps Client key</label>
+            <comment><![CDATA[This key is used when you don't want to use the Google Maps Key of DPD and is sent to your visitors browser and is used to render Google Maps in the checkout so visitors can select a parcelshop. <a href="https://developers.google.com/maps/documentation/javascript/get-api-key" target="_blank">More info</a>]]></comment>
         </field>
         <field id="map_width" translate="label" type="text" sortOrder="110" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Map width</label>

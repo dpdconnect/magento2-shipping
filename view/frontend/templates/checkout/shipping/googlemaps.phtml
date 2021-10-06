@@ -17,5 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/** @var \DpdConnect\Shipping\Block\GoogleMaps $block */
 ?>
-<script src="https://maps.googleapis.com/maps/api/js?key=<?php echo $this->getClientApiKey();?>" async defer></script>
+<script src="<?= $block->getJsUrl() ?>"></script>

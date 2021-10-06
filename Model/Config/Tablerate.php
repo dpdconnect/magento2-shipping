@@ -68,6 +68,7 @@ class Tablerate extends \Magento\Framework\App\Config\Value
         /** @var \DpdConnect\Shipping\Model\ResourceModel\Tablerate $tableRate */
         $tableRate = $this->_tablerateFactory->create();
         $tableRate->uploadAndImport($this);
+
         return parent::afterSave();
     }
 }

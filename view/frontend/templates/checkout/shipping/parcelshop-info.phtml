@@ -19,7 +19,6 @@
  */
 $parcelshop = $this->getParcelshop();
 $quote = $this->getQuote();
-$dpdExtraInfoDecoded = json_decode($parcelshop['extra_info']);
 ?>
 <div class="content">
     <table style="min-width: 380px" cellpadding="3" cellspacing="3">
@@ -29,9 +28,9 @@ $dpdExtraInfoDecoded = json_decode($parcelshop['extra_info']);
                     <img style="width: 80px; height: 80px;" src="<?php echo $this->getViewFileUrl('DpdConnect_Shipping::images/dpd_parcelshop_logo.png') ?>" alt="DPD Parcelshop logo"/>
                 </td>
                 <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                    <strong><?php echo $quote->getDpdCompany() ?></strong><br />
-                    <?php echo $quote->getDpdStreet() ?><br />
-                    <?php echo $quote->getDpdZipcode() . " " . $quote->getDpdCity() ?>
+                    <strong><?php echo $quote->getData('dpd_parcelshop_name') ?></strong><br />
+                    <?php echo $quote->getData('dpd_parcelshop_street') ?> <?php echo $quote->getData('dpd_parcelshop_house_number') ?><br />
+                    <?php echo $quote->getData('dpd_parcelshop_zip_code') . " " . $quote->getData('dpd_parcelshop_city') ?>
                 </td>
             </tr>
             <tr>
@@ -39,19 +38,13 @@ $dpdExtraInfoDecoded = json_decode($parcelshop['extra_info']);
                     <strong>Openingstijden</strong>
                 </td>
             </tr>
-            <?php if ($extraInfoArray = get_object_vars($dpdExtraInfoDecoded)): ?>
-                <?php foreach ($extraInfoArray as $key => $dpdExtraInfo): ?>
-                    <?php if ($key == "Opening hours"): ?>
-                        <?php echo __($this->getOpeningHoursHtml($dpdExtraInfo)) ?>
-                    <?php endif; ?>
-                <?php endforeach ?>
-            <?php endif; ?>
+            <?php echo __($this->getOpeningHoursHtml()) ?>
             <tr>
                 <td style="padding: 3px; border: none;"></td>
                 <td style="padding: 3px; width: 100%;" colspan="3">
-                    <a href="#" class="invalidateParcel"><?php echo __('Click here to change your ParcelShop'); ?></a>
+                    <a href="#" class="dpd_connect_change_parcelshop"><?php echo __('Click here to change your ParcelShop'); ?></a>
                     <input type="hidden" class="DPD-confirmed" value="1"/>
-                    <input type="hidden" class="parcelshopId" value="<?php echo $quote->getDpdParcelshopId() ?>" />
+                    <input type="hidden" class="parcelshopId" value="<?php echo $quote->getData('dpd_parcelshop_id') ?>" />
                 </td>
             </tr>
         </tbody>

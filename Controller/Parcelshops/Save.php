@@ -79,10 +79,11 @@ class Save extends \Magento\Framework\App\Action\Action
         $quote = $this->checkoutSession->getQuote();
         $quote->setData('dpd_parcelshop_id',$parcelData['parcelShopId']);
         $quote->setData('dpd_parcelshop_name',$parcelData['company']);
-        $quote->setData('dpd_parcelshop_street',$parcelData['houseno']);
-        $quote->setData('dpd_parcelshop_zip_code',$parcelData['zipcode']);
+        $quote->setData('dpd_parcelshop_street', $parcelData['street']);
+        $quote->setData('dpd_parcelshop_house_number', $parcelData['houseNo']);
+        $quote->setData('dpd_parcelshop_zip_code',$parcelData['zipCode']);
         $quote->setData('dpd_parcelshop_city',$parcelData['city']);
-        $quote->setData('dpd_parcelshop_country',$parcelData['country']);
+        $quote->setData('dpd_parcelshop_country',$parcelData['isoAlpha2']);
 
         $this->quoteRepository->save($quote);
 

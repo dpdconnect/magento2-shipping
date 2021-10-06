@@ -19,10 +19,17 @@
  */
 namespace DpdConnect\Shipping\Helper\Services;
 
+use DpdConnect\Shipping\Helper\Constants;
 use Magento\Framework\App\Helper\AbstractHelper;
 use DpdConnect\Shipping\Helper\DPDClient;
+use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Model\Order;
 
+/**
+ * Class OrderService
+ *
+ * @package DpdConnect\Shipping\Helper\Services
+ */
 class OrderService extends AbstractHelper
 {
     /**
@@ -31,12 +38,45 @@ class OrderService extends AbstractHelper
     private $order;
 
     /**
+     * @var null|Order\Shipment
+     */
+    private $shipment = null;
+
+    /**
+     * @var DPDClient
+     */
+    private $DPDClient;
+
+    /**
+     * OrderService constructor.
+     *
+     * @param Context   $context
+     * @param DPDClient $DPDClient
+     */
+    public function __construct(Context $context, DPDClient $DPDClient)
+    {
+        parent::__construct($context);
+        $this->DPDClient = $DPDClient;
+    }
+
+    /**
      * @param Order $order
      * @return OrderService
      */
     public function setOrder(Order $order)
     {
         $this->order = $order;
+
+        return $this;
+    }
+
+    /**
+     * @param Order\Shipment $shipment
+     * @return $this
+     */
+    public function setShipment(Order\Shipment $shipment)
+    {
+        $this->shipment = $shipment;
 
         return $this;
     }
@@ -60,9 +100,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDPredictOrder()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdpredict_dpdpredict' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdpredict_dpdpredict');
+        return in_array($this->getSelectedCode(), ['B2B MSG option', 'B2C', 'B2C6']);
     }
 
     /**
@@ -70,9 +113,23 @@ class OrderService extends AbstractHelper
      */
     public function isDPDPickupOrder()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod() && (!$this->shipment && $this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA))) {
+            return Constants::CARRIER_PARCELSHOP === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdpickup_dpdpickup');
+        $availableProducts = $this->DPDClient->authenticate()->getProduct()->getList();
+        $selectedCode = $this->getSelectedCode();
+
+        $selectedProduct = null;
+        foreach($availableProducts as $availableProduct) {
+            if ($availableProduct['code'] === $selectedCode) {
+                $selectedProduct = $availableProduct;
+                break;
+            }
+        }
+
+        return ('parcelshop' === $selectedProduct['type']);
     }
 
     /**
@@ -80,9 +137,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDSaturdayOrder()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdsaturday_dpdsaturday' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdsaturday_dpdsaturday');
+        return in_array($this->getSelectedCode(), ['B2C6', '6']);
     }
 
     /**
@@ -90,9 +150,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDClassicSaturdayOrder()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdclassicsaturday_dpdclassicsaturday' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdclassicsaturday_dpdclassicsaturday');
+        return in_array($this->getSelectedCode(), ['6']);
     }
 
 
@@ -101,9 +164,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDGuarantee18Order()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdguarantee18_dpdguarantee18' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdguarantee18_dpdguarantee18');
+        return in_array($this->getSelectedCode(), ['PM2']);
     }
 
     /**
@@ -111,9 +177,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDExpress12Order()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdexpress12_dpdexpress12' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdexpress12_dpdexpress12');
+        return in_array($this->getSelectedCode(), ['AM2']);
     }
 
     /**
@@ -121,9 +190,12 @@ class OrderService extends AbstractHelper
      */
     public function isDPDExpress10Order()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdexpress10_dpdexpress10' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdexpress10_dpdexpress10');
+        return in_array($this->getSelectedCode(), ['AM1']);
     }
 
     /**
@@ -131,8 +203,23 @@ class OrderService extends AbstractHelper
      */
     public function isDPDClassicOrder()
     {
-        $shippingMethod = $this->order->getShippingMethod();
+        // Added for backwards compatibility
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()) {
+            return 'dpdclassic_dpdclassic' === $this->order->getShippingMethod();
+        }
 
-        return ($shippingMethod === 'dpdclassic_dpdclassic');
+        return in_array($this->getSelectedCode(), ['B2B']);
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getSelectedCode()
+    {
+        if ($this->shipment && $this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+            return $this->shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'];
+        }
+
+        return $this->order->getDpdShippingProduct();
     }
 }

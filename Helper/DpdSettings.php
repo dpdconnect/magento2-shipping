@@ -47,14 +47,17 @@ class DpdSettings extends AbstractHelper
     const PRODUCT_ATTRIBUTE_HEIGHT = 'dpdshipping/product_attribute/product_height';
     const PRODUCT_ATTRIBUTE_DEPTH = 'dpdshipping/product_attribute/product_depth';
 
+    const API_ENDPOINT = 'dpdshipping/api/endpoint';
     const API_ASYNC_ENABLED = 'dpdshipping/api/async_enabled';
     const API_ASYNC_THRESHOLD = 'dpdshipping/api/async_threshold';
 
+    const PARCELSHOP_MAPS_USE_DPD_KEY = 'carriers/dpdpickup/use_dpd_maps_key';
     const PARCELSHOP_MAPS_CLIENT_KEY = 'carriers/dpdpickup/google_maps_api_client';
-    const PARCELSHOP_MAPS_SERVER_KEY = 'carriers/dpdpickup/google_maps_api_server';
     const PARCELSHOP_MAPS_WIDTH = 'carriers/dpdpickup/map_width';
     const PARCELSHOP_MAPS_HEIGHT = 'carriers/dpdpickup/map_height';
     const PARCELSHOP_MAPS_SHOPS = 'carriers/dpdpickup/map_max_shops';
+
+    const CARRIER_DPD_CUSTOMER_PRODUCTS = 'carriers/dpd/customer_products';
 
     public function getValue($path, $scopeType = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, $scopeCode = null)
     {
@@ -77,5 +80,18 @@ class DpdSettings extends AbstractHelper
     public function getCarrierTitle($carrierCode, $scopeType = ScopeConfigInterface::SCOPE_TYPE_DEFAULT, $scopeCode = null)
     {
         return $this->scopeConfig->getValue('carriers/' . $carrierCode . '/title', $scopeType, $scopeCode);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDpdCarrierCustomerProductSettings()
+    {
+        $settings = $this->getValue(self::CARRIER_DPD_CUSTOMER_PRODUCTS);
+        if (null === $settings) {
+            return [];
+        }
+
+        return json_decode($settings, true);
     }
 }

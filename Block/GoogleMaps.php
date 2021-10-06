@@ -19,27 +19,42 @@
  */
 namespace DpdConnect\Shipping\Block;
 
+use DpdConnect\Sdk\Client;
+use DpdConnect\Shipping\Helper\DPDClient;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Framework\View\Element\Template\Context;
 
 class GoogleMaps extends \Magento\Framework\View\Element\Template
 {
-    const DPD_GOOGLE_MAPS_API = 'carriers/dpdpickup/google_maps_api';
     /**
      * @var DpdSettings
      */
     private $dpdSettings;
 
+    /**
+     * GoogleMaps constructor.
+     *
+     * @param Context     $context
+     * @param DpdSettings $dpdSettings
+     */
     public function __construct(
         Context $context,
         DpdSettings $dpdSettings
     ) {
-        $this->dpdSettings = $dpdSettings;
         parent::__construct($context);
+        $this->dpdSettings = $dpdSettings;
     }
 
-    public function getClientApiKey()
+    /**
+     * @return string
+     */
+    public function getJsUrl()
     {
-        return $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_CLIENT_KEY);
+        $apiUrl = $this->dpdSettings->getValue(DpdSettings::API_ENDPOINT);
+        if (null === $apiUrl || '' === trim($apiUrl)) {
+            $apiUrl = Client::ENDPOINT;
+        }
+
+        return sprintf('%s/parcelshop/map/js', $apiUrl);
     }
 }

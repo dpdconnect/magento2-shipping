@@ -19,6 +19,7 @@
  */
 namespace DpdConnect\Shipping\Model\ResourceModel;
 
+use DpdConnect\Shipping\Helper\DpdSettings;
 use DpdConnect\Shipping\Model\ResourceModel\Tablerate\RateQuery;
 use DpdConnect\Shipping\Model\ResourceModel\Tablerate\RateQueryFactory;
 use Magento\Framework\Filesystem\DirectoryList;
@@ -149,15 +150,24 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     private $rateQueryFactory;
 
     /**
+     * @var DpdSettings
+     */
+    private $dpdSettings;
+
+    /**
      * Tablerate constructor.
      * @param \Magento\Framework\Model\ResourceModel\Db\Context $context
      * @param \Psr\Log\LoggerInterface $logger
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $coreConfig
      * @param \Magento\Store\Model\StoreManagerInterface $storeManager
      * @param \Magento\OfflineShipping\Model\Carrier\Tablerate $carrierTablerate
-     * @param Filesystem $filesystem
-     * @param RateQueryFactory $rateQueryFactory
+     * @param \Magento\Directory\Model\ResourceModel\Country\CollectionFactory $countryCollectionFactory
+     * @param \Magento\Directory\Model\ResourceModel\Region\CollectionFactory $regionCollectionFactory
+     * @param \Magento\Framework\Filesystem\Directory\ReadFactory $readFactory
+     * @param \Magento\Framework\Filesystem $filesystem
      * @param Import $import
+     * @param RateQueryFactory $rateQueryFactory
+     * @param DpdSettings $dpdSettings
      * @param null $connectionName
      */
     public function __construct(
@@ -172,6 +182,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         \Magento\Framework\Filesystem $filesystem,
         Import $import,
         RateQueryFactory $rateQueryFactory,
+        DpdSettings $dpdSettings,
         $connectionName = null
     ) {
         parent::__construct($context, $connectionName);
@@ -185,6 +196,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $this->filesystem = $filesystem;
         $this->import = $import;
         $this->rateQueryFactory = $rateQueryFactory;
+        $this->dpdSettings = $dpdSettings;
     }
 
 
@@ -217,6 +229,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $bindings = $rateQuery->getBindings();
 
         $result = $connection->fetchRow($select, $bindings);
+
         // Normalize destination zip code
         if ($result && $result['dest_zip'] == '*') {
             $result['dest_zip'] = '';
@@ -280,94 +293,123 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function uploadAndImport(\Magento\Framework\DataObject $object)
     {
         foreach ($_FILES['groups']['tmp_name'] as $key => $value) {
-            
             // Only process uploaded DPD files
             if (strpos($key, 'dpd') !== 0) {
                 continue;
             }
 
-            $csvFile = $value['fields']['import']['value'];
+            if (isset($value['fields']['import'])) { // Backwards compatibility
+                $csvFile = $value['fields']['import']['value'];
 
-            if ($csvFile == '') {
-                continue;
-            }
+                if ('' === $csvFile) {
+                    continue;
+                }
 
-            $website = $this->storeManager->getWebsite($object->getScopeId());
+                $this->importFile($object, $csvFile, $key);
+            } elseif (isset($value['fields']['customer_products']['value'])) {
+                $dpdProductSettings = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
 
-            $this->importWebsiteId = (int)$website->getId();
-            $this->importUniqueHash = [];
-            $this->importErrors = [];
-            $this->importedRows = 0;
-
-            $tmpDirectory = ini_get('upload_tmp_dir') ? $this->readFactory->create(ini_get('upload_tmp_dir'))
-                : $this->filesystem->getDirectoryRead(DirectoryList::SYS_TMP);
-            $path = $tmpDirectory->getRelativePath($csvFile);
-            $stream = $tmpDirectory->openFile($path);
-
-            // check and skip headers
-            $headers = $stream->readCsv();
-            if ($headers === false || count($headers) < 5) {
-                $stream->close();
-                throw new \Magento\Framework\Exception\LocalizedException(__('Please correct Table Rates File Format.'));
-            }
-
-            $this->shippingMethod = $key;
-            $this->importConditionName = $this->getConditionName($object, $object->getGroupId());
-            $adapter = $this->getConnection();
-            $adapter->beginTransaction();
-            try {
-                $rowNumber = 1;
-                $importData = [];
-                $this->_loadDirectoryCountries();
-                $this->_loadDirectoryRegions();
-
-                // delete old data by website and condition name
-                $condition = [
-                    'website_id = ?' => $this->importWebsiteId,
-                    'condition_name = ?' => $this->importConditionName,
-                    'shipping_method = ?' => $this->shippingMethod
-                ];
-                $adapter->delete($this->getMainTable(), $condition);
-                while (false !== ($csvLine = $stream->readCsv())) {
-                    $rowNumber++;
-                    if (empty($csvLine)) {
-                        continue;
-                    }
-                    $row = $this->_getImportRow($csvLine, $rowNumber);
-                    if ($row !== false) {
-                        $importData[] = $row;
-                    }
-                    if (count($importData) == 5000) {
-                        $this->_saveImportData($importData);
-                        $importData = [];
+                foreach ($value['fields']['customer_products']['value'] as $productCode => $data) {
+                    if ('' !== trim($data['import'])) {
+                        $this->importFile($object, $data['import'], $key.'_'.$productCode, $dpdProductSettings[$productCode]['conditionName']);
                     }
                 }
-                $this->_saveImportData($importData);
-                $stream->close();
-            } catch (\Magento\Framework\Exception\LocalizedException $e) {
-                $adapter->rollback();
-                $stream->close();
-                throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
-            } catch (\Exception $e) {
-                $adapter->rollback();
-                $stream->close();
-                $this->logger->critical($e);
-                throw new \Magento\Framework\Exception\LocalizedException(
-                    __('Something went wrong while importing table rates.')
-                );
-            }
-
-            $adapter->commit();
-            if ($this->importErrors) {
-                $error = __(
-                    'We couldn\'t import this file because of these errors: %1',
-                    implode(" \n", $this->importErrors)
-                );
-                throw new \Magento\Framework\Exception\LocalizedException($error);
             }
         }
 
         return $this;
+    }
+
+    /**
+     * @param \Magento\Framework\DataObject $object
+     * @param $csvFile
+     * @param $shippingMethod
+     *
+     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\ValidatorException
+     */
+    private function importFile(\Magento\Framework\DataObject $object, $csvFile, $shippingMethod, $conditionName = null)
+    {
+        $website = $this->storeManager->getWebsite($object->getScopeId());
+
+        $this->importWebsiteId = (int)$website->getId();
+        $this->importUniqueHash = [];
+        $this->importErrors = [];
+        $this->importedRows = 0;
+
+        $tmpDirectory = ini_get('upload_tmp_dir') ? $this->readFactory->create(ini_get('upload_tmp_dir'))
+            : $this->filesystem->getDirectoryRead(DirectoryList::SYS_TMP);
+        $path = $tmpDirectory->getRelativePath($csvFile);
+        $stream = $tmpDirectory->openFile($path);
+
+        // check and skip headers
+        $headers = $stream->readCsv();
+        if ($headers === false || count($headers) < 5) {
+            $stream->close();
+            throw new \Magento\Framework\Exception\LocalizedException(__('Please correct Table Rates File Format.'));
+        }
+
+        $this->shippingMethod = $shippingMethod;
+
+        if (null === $conditionName) {
+            $this->importConditionName = $this->getConditionName($object, $shippingMethod);
+        } else {
+            $this->importConditionName = $conditionName;
+        }
+
+        $adapter = $this->getConnection();
+        $adapter->beginTransaction();
+        try {
+            $rowNumber = 1;
+            $importData = [];
+            $this->_loadDirectoryCountries();
+            $this->_loadDirectoryRegions();
+
+            // delete old data by website and condition name
+            $condition = [
+                'website_id = ?' => $this->importWebsiteId,
+                'condition_name = ?' => $this->importConditionName,
+                'shipping_method = ?' => $this->shippingMethod
+            ];
+            $adapter->delete($this->getMainTable(), $condition);
+            while (false !== ($csvLine = $stream->readCsv())) {
+                $rowNumber++;
+                if (empty($csvLine)) {
+                    continue;
+                }
+                $row = $this->_getImportRow($csvLine, $rowNumber);
+                if ($row !== false) {
+                    $importData[] = $row;
+                }
+                if (count($importData) == 5000) {
+                    $this->_saveImportData($importData);
+                    $importData = [];
+                }
+            }
+            $this->_saveImportData($importData);
+            $stream->close();
+        } catch (\Magento\Framework\Exception\LocalizedException $e) {
+            $adapter->rollback();
+            $stream->close();
+            throw new \Magento\Framework\Exception\LocalizedException(__($e->getMessage()));
+        } catch (\Exception $e) {
+            $adapter->rollback();
+            $stream->close();
+            $this->logger->critical($e);
+            throw new \Magento\Framework\Exception\LocalizedException(
+                __('Something went wrong while importing table rates.')
+            );
+        }
+
+        $adapter->commit();
+        if ($this->importErrors) {
+            $error = __(
+                'We couldn\'t import this file because of these errors: %1',
+                implode(" \n", $this->importErrors)
+            );
+            throw new \Magento\Framework\Exception\LocalizedException($error);
+        }
     }
 
     /**

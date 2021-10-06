@@ -20,9 +20,11 @@
 namespace DpdConnect\Shipping\Helper\Services;
 
 use DpdConnect\Sdk\Exceptions\RequestException;
+use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\DPDClient;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use DpdConnect\Shipping\Model\ShipmentLabelFactory;
+use DpdConnect\Shipping\Services\ShipmentManager;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
@@ -68,6 +70,11 @@ class ShipmentLabelService extends AbstractHelper
     private $urlHelper;
 
     /**
+     * @var ShipmentManager
+     */
+    private $shipmentManager;
+
+    /**
      * ShipmentLabelService constructor.
      * @param Context $context
      * @param DPDClient $DPDClient
@@ -75,6 +82,7 @@ class ShipmentLabelService extends AbstractHelper
      * @param OrderConvertService $orderConvertService
      * @param DpdSettings $dpdSettings
      * @param ShipmentLabelFactory $shipmentLabelFactory
+     * @param ShipmentManager $shipmentManager
      * @param DirectoryList $directoryList
      * @param File $filesystem
      * @param Url $urlHelper
@@ -86,6 +94,7 @@ class ShipmentLabelService extends AbstractHelper
         OrderConvertService $orderConvertService,
         DpdSettings $dpdSettings,
         ShipmentLabelFactory $shipmentLabelFactory,
+        ShipmentManager $shipmentManager,
         DirectoryList $directoryList,
         File $filesystem,
         Url $urlHelper
@@ -99,6 +108,7 @@ class ShipmentLabelService extends AbstractHelper
         $this->filesystem = $filesystem;
         parent::__construct($context);
         $this->urlHelper = $urlHelper;
+        $this->shipmentManager = $shipmentManager;
     }
 
     public function saveLabel($order, $shipment, $shipmentIdentifier, $parcelNumbers, $labelData, $isReturn)
@@ -157,9 +167,9 @@ class ShipmentLabelService extends AbstractHelper
     {
         $this->orderService->setOrder($order);
 
-        $shipmentData[] = $this->orderConvertService->convert($order, $isReturn, $parcels);
+        $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $isReturn, $parcels);
         if ($includeReturn) {
-            $shipmentData[] = $this->orderConvertService->convert($order, $includeReturn, $parcels);
+            $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $includeReturn, $parcels);
         }
 
         $result = $this->createShipment($shipmentData);
@@ -207,9 +217,9 @@ class ShipmentLabelService extends AbstractHelper
     {
         $this->orderService->setOrder($order);
 
-        $shipmentData[] = $this->orderConvertService->convert($order, $isReturn, $parcels);
+        $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $isReturn, $parcels);
         if ($includeReturn) {
-            $shipmentData[] = $this->orderConvertService->convert($order, $includeReturn, $parcels);
+            $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $includeReturn, $parcels);
         }
 
         $weight = $this->orderConvertService->getOrderWeight($order);
@@ -239,14 +249,22 @@ class ShipmentLabelService extends AbstractHelper
     {
         $shipmentData = [];
         foreach ($orders as $order) {
-            $shipmentData[] = $this->orderConvertService->convert($order, false, 1);
-            if ($includeReturn) {
-                $shipmentData[] = $this->orderConvertService->convert($order, $includeReturn, 1);
+            $shipmentRows = $order->getData(Constants::ORDER_EXTRA_SHIPPING_DATA);
+            foreach ($shipmentRows as $shipmentRow) {
+                // Gets the first shipment OR creates a new shipment
+                $shipment = $this->shipmentManager->createShipment($order, $shipmentRow);
+
+                $shipmentData[] = $this->orderConvertService->convert($order, $shipment, false, 1);
+                if ($includeReturn) {
+                    $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $includeReturn, 1);
+                }
             }
         }
 
         $result = $this->createShipmentAsync($shipmentData);
-        return $result->getContent();
+        $responseData = $result->getContent();
+
+        return $responseData;
     }
 
     public function getLabel($parcelNumber)

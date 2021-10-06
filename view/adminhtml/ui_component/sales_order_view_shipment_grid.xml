@@ -23,9 +23,9 @@
             <action name="dpd_create_shipment" class="DpdConnect\Shipping\Ui\Component\Shipping\CreateShipmentAction">
                 <argument name="data" xsi:type="array">
                     <item name="config" xsi:type="array">
-                        <item name="type" xsi:type="string">dpd_create_shipment</item>
+                        <item name="type" xsi:type="string">dpd_download_shipment_labels</item>
                         <item name="label" xsi:type="string" translate="true">DPD - Download labels</item>
-                        <item name="createShipmentAction" xsi:type="string">dpd_shipping/shipping/createShipment</item>
+                        <item name="createShipmentAction" xsi:type="string">dpd_shipping/shipping/massDownload</item>
                         <item name="confirm" xsi:type="array">
                             <item name="title" xsi:type="string" translate="true">DPD - Download labels</item>
                             <item name="message" xsi:type="string" translate="true">Are you sure you want to download labels for the selected shipments?</item>

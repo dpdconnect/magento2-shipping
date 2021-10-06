@@ -69,7 +69,19 @@ class ApiCallback implements ApiCallbackInterface
         $job = $this->batchManager->getJobById($jobId);
         $batch = $this->batchManager->getBatchById($job->getBatchId());
 
-        $shipment = $order->getShipmentsCollection()->getFirstItem();
+        // Get the correct shipment
+        $shipment = null;
+        if (isset($data['shipment']['parcels'][0]['customerReferences'][3])) {
+            $shipmentId = $data['shipment']['parcels'][0]['customerReferences'][3];
+            if (is_numeric($shipmentId)) {
+                $shipment = $order->getShipmentsCollection()->getItemById($shipmentId);
+            }
+        }
+
+        // Default to the first shipment
+        if (null === $shipment) {
+            $shipment = $order->getShipmentsCollection()->getFirstItem();
+        }
 
         $job->setOrderId($order->getEntityId());
         $job->setOrderIncrementId($order->getIncrementId());

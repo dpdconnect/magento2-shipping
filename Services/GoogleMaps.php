@@ -1,8 +1,6 @@
 <?php
 
-
 namespace DpdConnect\Shipping\Services;
-
 
 use DpdConnect\Shipping\Helper\Data;
 use Magento\Framework\DB\LoggerInterface;

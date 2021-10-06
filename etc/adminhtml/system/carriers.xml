@@ -19,16 +19,14 @@
 -->
 <include xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_include.xsd">
     <section id="carriers" translate="label" type="text" sortOrder="320" showInDefault="1" showInWebsite="1" showInStore="1">
-
-        <include path="DpdConnect_Shipping::system/carriers/dpd_predict.xml"/>
-        <include path="DpdConnect_Shipping::system/carriers/dpd_saturday.xml"/>
+        <include path="DpdConnect_Shipping::system/carriers/dpd.xml"/>
         <include path="DpdConnect_Shipping::system/carriers/dpd_pickup.xml"/>
-
         <include path="DpdConnect_Shipping::system/carriers/dpd_classic.xml"/>
         <include path="DpdConnect_Shipping::system/carriers/dpd_classic_saturday.xml"/>
         <include path="DpdConnect_Shipping::system/carriers/dpd_express10.xml"/>
         <include path="DpdConnect_Shipping::system/carriers/dpd_express12.xml"/>
         <include path="DpdConnect_Shipping::system/carriers/dpd_guarantee18.xml"/>
-
+        <include path="DpdConnect_Shipping::system/carriers/dpd_predict.xml"/>
+        <include path="DpdConnect_Shipping::system/carriers/dpd_saturday.xml"/>
     </section>
 </include>

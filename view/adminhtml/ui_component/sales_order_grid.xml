@@ -25,7 +25,7 @@
                     <item name="config" xsi:type="array">
                         <item name="type" xsi:type="string">dpd_create_shipment</item>
                         <item name="label" xsi:type="string" translate="true">DPD - Create shipment(s)</item>
-                        <item name="url" xsi:type="url" path="dpd_shipping/order/createShipment"/>
+                        <item name="url" xsi:type="url" path="dpd_shipping/order/checkShipment"/>
                         <item name="confirm" xsi:type="array">
                             <item name="title" xsi:type="string" translate="true">DPD - Create shipment(s)</item>
                             <item name="message" xsi:type="string" translate="true">Are you sure you want to create shipments and download labels for the selected orders?</item>

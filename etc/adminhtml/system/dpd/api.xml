@@ -35,5 +35,10 @@
                 <field id="dpdshipping/api/async_enabled">1</field>
             </depends>
         </field>
+
+        <field id="endpoint" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+            <label>Endpoint (ONLY use this if instructed, otherwise leave empty)</label>
+            <comment>The DPD Connect endpoint to use (useful for development)</comment>
+        </field>
     </group>
 </include>

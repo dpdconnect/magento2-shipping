@@ -62,36 +62,32 @@ class ParcelshopInfo extends \Magento\Framework\View\Element\Template
     /**
      * Render the html for openinghours. (to keep template files clean from to much functional php)
      *
-     * @param $dpdExtraInfo
      * @return string
      */
-    public function getOpeningHoursHtml($dpdExtraInfo)
+    public function getOpeningHoursHtml()
     {
         $html = "";
-        if (is_array(json_decode($dpdExtraInfo))) {
-            foreach (json_decode($dpdExtraInfo) as $openinghours) {
-                $openingHoursMorning = $openinghours->openMorning . ' - ' . $openinghours->closeMorning;
-                $openingHoursAfternoon = $openinghours->openAfternoon . ' - ' . $openinghours->closeAfternoon;
+        foreach ($this->parcelshop['openingHours'] as $openinghours) {
+            $openingHoursMorning = $openinghours['openMorning'] . ' - ' . $openinghours['closeMorning'];
+            $openingHoursAfternoon = $openinghours['openAfternoon'] . ' - ' . $openinghours['closeAfternoon'];
 
-                if ($openingHoursMorning == '00:00 - 00:00') {
-                    $openingHoursMorning = __('Closed');
-                }
-
-                if ($openingHoursAfternoon == '00:00 - 00:00') {
-                    $openingHoursAfternoon = __('Closed');
-                }
-
-                $html .= '
-                    <tr>
-                        <td style="padding: 3px; border: none;"></td>
-                        <td style="padding: 3px; width: 25%;"><strong>' . __(strtolower($openinghours->weekday)) . '</strong></td>
-                        <td style="padding: 3px; width: 25%; text-align: center;">' . $openingHoursMorning . '</td>
-                        <td style="padding: 3px; width: 25%; text-align: center;">' . $openingHoursAfternoon . '</td>
-                    </tr>';
+            if ($openingHoursMorning == '00:00 - 00:00') {
+                $openingHoursMorning = __('Closed');
             }
-        } else {
-            $html .= $dpdExtraInfo;
+
+            if ($openingHoursAfternoon == '00:00 - 00:00') {
+                $openingHoursAfternoon = __('Closed');
+            }
+
+            $html .= '
+                <tr>
+                    <td style="padding: 3px; border: none;"></td>
+                    <td style="padding: 3px; width: 25%;"><strong>' . __(strtolower($openinghours['weekday'])) . '</strong></td>
+                    <td style="padding: 3px; width: 25%; text-align: center;">' . $openingHoursMorning . '</td>
+                    <td style="padding: 3px; width: 25%; text-align: center;">' . $openingHoursAfternoon . '</td>
+                </tr>';
         }
+
         return $html;
     }
 }

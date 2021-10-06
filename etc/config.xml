@@ -71,6 +71,36 @@
             </api>
         </dpdshipping>
         <carriers>
+            <dpd>
+                <active>1</active>
+                <rate_type>flat</rate_type>
+                <sallowspecific>0</sallowspecific>
+                <model>DpdConnect\Shipping\Model\Carrier\Dpd</model>
+                <name>DPD Classic</name>
+                <price>6.95</price>
+                <title>DPD</title>
+                <type>I</type>
+                <sort_order>0</sort_order>
+                <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
+            </dpd>
+            <dpdpickup>
+                <active>0</active>
+                <title>DPD Pickup</title>
+                <name>DPD Pickup</name>
+                <rate_type>flat</rate_type>
+                <price>0.00</price>
+                <sort_order>0</sort_order>
+                <use_dpd_maps_key>1</use_dpd_maps_key>
+                <google_maps_api_client/>
+                <map_width>796</map_width>
+                <map_height>430</map_height>
+                <map_max_shops>20</map_max_shops>
+                <sallowspecific>0</sallowspecific>
+                <model>DpdConnect\Shipping\Model\Carrier\Dpdpickup</model>
+                <type>I</type>
+                <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
+            </dpdpickup>
+            <!-- Config for backwards compatibility -->
             <dpdguarantee18>
                 <active>0</active>
                 <rate_type>flat</rate_type>
@@ -159,23 +189,6 @@
                 <sort_order>0</sort_order>
                 <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
             </dpdclassicsaturday>
-            <dpdpickup>
-                <active>0</active>
-                <title>DPD Pickup</title>
-                <name>DPD Pickup</name>
-                <rate_type>flat</rate_type>
-                <price>0.00</price>
-                <sort_order>0</sort_order>
-                <google_maps_api_client/>
-                <google_maps_api_server/>
-                <map_width>600</map_width>
-                <map_height>430</map_height>
-                <map_max_shops>20</map_max_shops>
-                <sallowspecific>0</sallowspecific>
-                <model>DpdConnect\Shipping\Model\Carrier\Dpdpickup</model>
-                <type>I</type>
-                <specificerrmsg>This shipping method is not available. To use this shipping method, please contact us.</specificerrmsg>
-            </dpdpickup>
         </carriers>
     </default>
 </config>
