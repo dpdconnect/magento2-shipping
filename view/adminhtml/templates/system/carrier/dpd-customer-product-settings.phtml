@@ -55,6 +55,15 @@
                 $(this).parents('.dpd-content').find('.dpd-table-rate').hide();
                 $(this).parents('.dpd-content').find('.dpd-' + $(this).val() + '-rate').show();
             }).trigger('change');
+
+            $('.shipping-applicable-country[data-linked]').on('change', function(e) {
+                $($(this).data('linked')).hide();
+                $($(this).data('linked')).find('select').attr('disabled', 'disabled');
+                if ($(this).val() === '1') {
+                    $($(this).data('linked')).show();
+                    $($(this).data('linked')).find('select').removeAttr('disabled');
+                }
+            });
         });
     });
 </script>
@@ -222,6 +231,26 @@
                 </div>
             </div>
 
+            <div class="dpd-row">
+                <div class="label">Ship to Applicable Countries</div>
+                <div class="value">
+                    <select name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][onlySpecificCountries]" class="shipping-applicable-country select admin__control-select" data-linked=".allowedCountries-select-<?php echo $product['code'] ?>">
+                        <option value="0"<?php echo('0' === $block->getSettingsValue($product['code'], 'onlySpecificCountries', '0') ? 'selected' : '') ?>>All Allowed Countries</option>
+                        <option value="1"<?php echo('1' === $block->getSettingsValue($product['code'], 'onlySpecificCountries', '0') ? 'selected' : '') ?>>Specific Countries</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="dpd-row allowedCountries-select-<?php echo $product['code'] ?>"<?php echo('0' === $block->getSettingsValue($product['code'], 'onlySpecificCountries', '0') ? ' style="display:none"' : '') ?>>
+                <div class="label">Applicable Countries</div>
+                <div class="value">
+                    <select name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][allowedCountries][]" class=" select multiselect admin__control-multiselect" size="10" multiple="multiple" <?php echo('0' === $block->getSettingsValue($product['code'], 'onlySpecificCountries', '0') ? ' disabled="disabled"' : '') ?>>
+                        <?php foreach($block->getCountryList() as $country): ?>
+                            <option value="<?php echo $country['iso2_code'] ?>"<?php echo(true === in_array($country['iso2_code'], $block->getSettingsValue($product['code'], 'allowedCountries', [])) ? ' selected' : '') ?>><?php echo $block->getCountryName($country['country_id']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            </div>
         </div>
     </div>
 <?php endforeach; ?>
