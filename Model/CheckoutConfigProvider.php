@@ -104,6 +104,9 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $output['dpd_parcelshop_use_dpd_key'] = $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_USE_DPD_KEY) === 1;
         $output['dpd_parcelshop_google_key'] = $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_CLIENT_KEY);
 
+        $quote = $this->checkoutSession->getQuote();
+        $output['dpd_carrier_shipping_selected_product'] = $quote->getDpdShippingProduct();
+
         // Add the available shipping products
         $dayOfWeek = date('N');
         $availableShippingProducts = [];
@@ -129,14 +132,13 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
                 'code' => $product['code'],
                 'title' => $title,
                 'price' => $shippingProductsConfig[$product['code']]['price'],
+                'onlySpecificCountries' => $shippingProductsConfig[$product['code']]['onlySpecificCountries'],
+                'allowedCountries' => isset($shippingProductsConfig[$product['code']]['allowedCountries']) ? $shippingProductsConfig[$product['code']]['allowedCountries'] : [],
             ];
         }
 
         $output['dpd_carrier_save_url'] = $this->urlBuilder->getUrl('dpd/carrier/save', ['_secure' => true]);
         $output['dpd_carrier_available_shipping_products'] = $availableShippingProducts;
-
-        $quote = $this->checkoutSession->getQuote();
-        $output['dpd_carrier_shipping_selected_product'] = $quote->getDpdShippingProduct();
 
         // Make sure a default value is set
         if (0 < count($availableShippingProducts) && (null === $output['dpd_carrier_shipping_selected_product'] || '' === $output['dpd_carrier_shipping_selected_product'])) {

@@ -206,17 +206,33 @@ class Dpd extends AbstractCarrier implements
         $dpdProductSettings = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
 
         // Check if atleast one customer product is enabled
-        $atleastOneEnabled = false;
+        $enabledProducts = [];
         foreach($dpdProductSettings as $key => $data) {
-            if (isset($data['enabled']) && '1' === $data['enabled']) {
-                $atleastOneEnabled = true;
-                break;
+            if (isset($data['enabled'])
+                && '1' === $data['enabled']
+            ) {
+                if (false === isset($data['onlySpecificCountries'])) {
+                    $enabledProducts[] = $key;
+                }
+
+                if ('0' === $data['onlySpecificCountries']) {
+                    $enabledProducts[] = $key;
+                }
+
+                if (true === isset($data['allowedCountries']) && true === in_array($quote->getShippingAddress()->getCountry(), $data['allowedCountries'])) {
+                    $enabledProducts[] = $key;
+                }
             }
         }
 
         // Disable this shipping method when no customer products are enabled
-        if (false === $atleastOneEnabled) {
+        if (0 === count($enabledProducts)) {
             return false;
+        }
+
+        if (false === in_array($dpdShippingProduct, $enabledProducts)) {
+            $dpdShippingProduct = $enabledProducts[0];
+            $quote->setDpdShippingProduct($enabledProducts[0]);
         }
 
         $selectedDpdProductSettings = [];

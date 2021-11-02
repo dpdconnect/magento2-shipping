@@ -54,6 +54,12 @@ define([
                             shippingProductSelectBox = '<select id="dpd_carrier_product">';
                             for (var i = 0; i < window.checkoutConfig.dpd_carrier_available_shipping_products.length; i++) {
                                 var product = window.checkoutConfig.dpd_carrier_available_shipping_products[i];
+
+                                // Hide the method if the country is not allowed
+                                if ('1' === product.onlySpecificCountries && -1 === product.allowedCountries.indexOf(quote.shippingAddress().countryId)) {
+                                    continue;
+                                }
+
                                 shippingProductSelectBox += '<option value="' + product['code'] + '"';
                                 if (window.checkoutConfig.dpd_carrier_shipping_selected_product === product['code']) {
                                     shippingProductSelectBox += ' selected="selected"';

@@ -114,7 +114,9 @@ class OrderService extends AbstractHelper
     public function isDPDPickupOrder()
     {
         // Added for backwards compatibility
-        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod() && (!$this->shipment && $this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA))) {
+        if (Constants::CARRIER_DPD !== $this->order->getShippingMethod()
+            && (!$this->shipment || !$this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA))
+        ) {
             return Constants::CARRIER_PARCELSHOP === $this->order->getShippingMethod();
         }
 
