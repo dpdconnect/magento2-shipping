@@ -48,11 +48,38 @@ class SalesOrderSaveBefore implements ObserverInterface
     {
         // Ignore adminhtml
         if ($this->state->getAreaCode() == \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            $this->processAdminHtml($observer->getEvent()->getOrder());
             return;
         }
 
-        /** @var Order $order */
-        $order = $observer->getEvent()->getOrder();
+        $this->processFrontend($observer->getEvent()->getOrder());
+    }
+
+    /**
+     * @param Order $order
+     */
+    private function processAdminHtml(Order $order)
+    {
+        $shippingMethod = $order->getShippingMethod();
+        if (false === strpos($shippingMethod, 'dpd_')) {
+            return;
+        }
+
+        if ('dpd_dpd' === $shippingMethod) {
+            return;
+        }
+
+        $order->setShippingMethod('dpd_dpd');
+
+        $shippingMethodParts = explode('_', $shippingMethod);
+        $order->setDpdShippingProduct($shippingMethodParts[1]);
+    }
+
+    /**
+     * @param Order $order
+     */
+    private function processFrontend(Order $order)
+    {
         if (false === in_array($order->getShippingMethod(), ['dpd_dpd', 'dpdpickup_dpdpickup'])) {
             return;
         }

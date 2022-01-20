@@ -50,28 +50,30 @@ class Dpd extends AbstractCarrier implements
     protected $_defaultConditionName = 'package_weight';
 
     private $checkoutSession;
+    private $state;
 
     /**
      * Dpd constructor.
      *
-     * @param ScopeConfigInterface                           $scopeConfig
-     * @param Resolver                                       $localeResolver
-     * @param ErrorFactory                                   $rateErrorFactory
-     * @param LoggerInterface                                $logger
-     * @param ResultFactory                                  $rateResultFactory
-     * @param MethodFactory                                  $rateMethodFactory
-     * @param TablerateFactory                               $tablerateFactory
+     * @param ScopeConfigInterface $scopeConfig
+     * @param Resolver $localeResolver
+     * @param ErrorFactory $rateErrorFactory
+     * @param LoggerInterface $logger
+     * @param ResultFactory $rateResultFactory
+     * @param MethodFactory $rateMethodFactory
+     * @param TablerateFactory $tablerateFactory
      * @param \Magento\Shipping\Model\Tracking\ResultFactory $trackFactory
-     * @param StatusFactory                                  $trackStatusFactory
-     * @param ResultFactory                                  $rateFactory
-     * @param DpdSettings                                    $dpdSettings
-     * @param DPDClient                                      $dpdClient
-     * @param OrderConvertService                            $orderConvertService
-     * @param TimezoneInterface                              $timezoneInterface
-     * @param ShipmentLabelService                           $shipmentLabelService
-     * @param ShipmentManager                                $shipmentManager
-     * @param \Magento\Checkout\Model\Session                $checkoutSession
-     * @param array                                          $data
+     * @param StatusFactory $trackStatusFactory
+     * @param ResultFactory $rateFactory
+     * @param DpdSettings $dpdSettings
+     * @param DPDClient $dpdClient
+     * @param OrderConvertService $orderConvertService
+     * @param TimezoneInterface $timezoneInterface
+     * @param ShipmentLabelService $shipmentLabelService
+     * @param ShipmentManager $shipmentManager
+     * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Framework\App\State $state
+     * @param array $data
      */
     public function __construct(
         ScopeConfigInterface $scopeConfig,
@@ -91,6 +93,7 @@ class Dpd extends AbstractCarrier implements
         ShipmentLabelService $shipmentLabelService,
         ShipmentManager $shipmentManager,
         \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\App\State $state,
         array $data = []
     ) {
         parent::__construct(
@@ -113,6 +116,7 @@ class Dpd extends AbstractCarrier implements
             $data
         );
         $this->checkoutSession = $checkoutSession;
+        $this->state = $state;
     }
 
 
@@ -179,7 +183,7 @@ class Dpd extends AbstractCarrier implements
     /**
      * @param RateRequest $request
      *
-     * @return bool|Result
+     * @return bool|\Magento\Shipping\Model\Rate\Result
      */
     public function collectRates(RateRequest $request)
     {
@@ -190,45 +194,39 @@ class Dpd extends AbstractCarrier implements
         /** @var \Magento\Shipping\Model\Rate\Result $result */
         $result = $this->_rateResultFactory->create();
 
-        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
-        $method = $this->_rateMethodFactory->create();
-
-        $method->setCarrier('dpd');
-        $method->setCarrierTitle($this->getConfigData('title'));
-
-        $method->setMethod('dpd');
-        $method->setMethodTitle($this->getConfigData('name'));
-
-        // Get the selected DPD Shipping Product to check its settings
-        $quote = $this->checkoutSession->getQuote();
-        $dpdShippingProduct = $quote->getDpdShippingProduct();
-
         $dpdProductSettings = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
-
-        // Check if atleast one customer product is enabled
-        $enabledProducts = [];
-        foreach($dpdProductSettings as $key => $data) {
-            if (isset($data['enabled'])
-                && '1' === $data['enabled']
-            ) {
-                if (false === isset($data['onlySpecificCountries'])) {
-                    $enabledProducts[] = $key;
-                }
-
-                if ('0' === $data['onlySpecificCountries']) {
-                    $enabledProducts[] = $key;
-                }
-
-                if (true === isset($data['allowedCountries']) && true === in_array($quote->getShippingAddress()->getCountry(), $data['allowedCountries'])) {
-                    $enabledProducts[] = $key;
-                }
-            }
-        }
+        $enabledProducts = $this->getEnabledProducts($request, $dpdProductSettings);
 
         // Disable this shipping method when no customer products are enabled
         if (0 === count($enabledProducts)) {
             return false;
         }
+
+        if ($this->state->getAreaCode() === \Magento\Framework\App\Area::AREA_ADMINHTML) {
+            $this->addAdminHtmlMethods($result, $request, $enabledProducts, $dpdProductSettings);
+        } else {
+            $this->addFrontendMethods($result, $request, $enabledProducts, $dpdProductSettings);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param \Magento\Shipping\Model\Rate\Result $result
+     * @param RateRequest $request
+     * @param array $enabledProducts
+     * @param array $dpdProductSettings
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function addFrontendMethods(\Magento\Shipping\Model\Rate\Result $result, RateRequest $request, array $enabledProducts, array $dpdProductSettings)
+    {
+        $method = $this->createMethod();
+
+        // Get the selected DPD Shipping Product to check its settings
+        $quote = $this->checkoutSession->getQuote();
+        $dpdShippingProduct = $quote->getDpdShippingProduct();
 
         if (false === in_array($dpdShippingProduct, $enabledProducts)) {
             $dpdShippingProduct = $enabledProducts[0];
@@ -244,7 +242,102 @@ class Dpd extends AbstractCarrier implements
             }
         }
 
-        if (isset($selectedDpdProductSettings['rateType']) && 'table' === $selectedDpdProductSettings['rateType']) {
+        $rate = $this->getCustomerProductRate($request, $dpdShippingProduct, $selectedDpdProductSettings);
+        $method->setPrice($rate['price']);
+        $method->setCost($rate['cost']);
+
+        $result->append($method);
+    }
+
+    /**
+     * @param \Magento\Shipping\Model\Rate\Result $result
+     * @param RateRequest $request
+     * @param array $enabledProducts
+     * @param array $dpdProductSettings
+     *
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function addAdminHtmlMethods(\Magento\Shipping\Model\Rate\Result $result, RateRequest $request, array $enabledProducts, array $dpdProductSettings)
+    {
+        foreach($enabledProducts as $enabledProduct) {
+            $method = $this->createMethod();
+
+            $settings = $dpdProductSettings[$enabledProduct];
+            if (isset($settings['title'])) {
+                $method->setMethodTitle($settings['title']);
+            }
+
+            $rate = $this->getCustomerProductRate($request, $enabledProduct, $settings);
+            $method->setPrice($rate['price']);
+            $method->setCost($rate['cost']);
+            $method->setMethod($enabledProduct);
+
+            $result->append($method);
+        }
+    }
+
+    /**
+     * @return \Magento\Quote\Model\Quote\Address\RateResult\Method
+     */
+    private function createMethod()
+    {
+        /** @var \Magento\Quote\Model\Quote\Address\RateResult\Method $method */
+        $method = $this->_rateMethodFactory->create();
+
+        $method->setCarrier('dpd');
+        $method->setCarrierTitle($this->getConfigData('title'));
+
+        $method->setMethod('dpd');
+        $method->setMethodTitle($this->getConfigData('name'));
+
+        return $method;
+    }
+
+    /**
+     * @param RateRequest $request
+     * @param array $dpdProductSettings
+     *
+     * @return array
+     */
+    private function getEnabledProducts(RateRequest $request, array $dpdProductSettings)
+    {
+        // Check if atleast one customer product is enabled
+        $enabledProducts = [];
+        foreach($dpdProductSettings as $key => $data) {
+            if (isset($data['enabled'])
+                && '1' === $data['enabled']
+            ) {
+                if (false === isset($data['onlySpecificCountries'])) {
+                    $enabledProducts[] = $key;
+                }
+
+                if ('0' === $data['onlySpecificCountries']) {
+                    $enabledProducts[] = $key;
+                }
+
+                if (true === isset($data['allowedCountries']) && true === in_array($request->getDestCountryId(), $data['allowedCountries'])) {
+                    $enabledProducts[] = $key;
+                }
+            }
+        }
+
+        return $enabledProducts;
+    }
+
+    /**
+     * @param RateRequest $request
+     * @param string $productCode
+     * @param array $productSettings
+     *
+     * @return array|false|int[]
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     */
+    private function getCustomerProductRate(RateRequest $request, string $productCode, array $productSettings)
+    {
+        // Table rate
+        if (isset($productSettings['rateType']) && 'table' === $productSettings['rateType']) {
             // Possible bug in Magento, new sessions post no data when fetching the shipping methods, only country_id: US
             // This prevents the tablerates from showing a 0,00 shipping price
             if (!$request->getDestPostcode() && 'US' === $request->getDestCountryId()) {
@@ -276,12 +369,12 @@ class Dpd extends AbstractCarrier implements
                 $request->setPackageValue($oldValue - $freePackageValue);
             }
 
-            $request->setConditionName(isset($selectedDpdProductSettings['conditionName']) ? $selectedDpdProductSettings['conditionName'] : $this->_defaultConditionName);
+            $request->setConditionName(isset($productSettings['conditionName']) ? $productSettings['conditionName'] : $this->_defaultConditionName);
             $oldQty = $request->getPackageQty();
 
             $request->setPackageWeight($request->getFreeMethodWeight());
             $request->setPackageQty($oldQty - $freeQty);
-            $request->setShippingMethod('dpd_'.$dpdShippingProduct);
+            $request->setShippingMethod('dpd_'.$productCode);
 
             $rate = $this->getRate($request);
 
@@ -289,29 +382,24 @@ class Dpd extends AbstractCarrier implements
             if (true === $request->getFreeShipping()) {
                 $shippingPrice = 0;
             }
-            $method->setPrice($shippingPrice);
-            $method->setCost($rate['cost']);
-        } else {
-            $shippingProductSettings = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
-            $quote = $this->checkoutSession->getQuote();
 
-            if ($quote->getDpdShippingProduct() && isset($shippingProductSettings[$quote->getDpdShippingProduct()])) {
-                $amount = $shippingProductSettings[$quote->getDpdShippingProduct()]['price'];
-            } else {
-                // Default to the config price
-                $amount = $this->getConfigData('price');
-            }
-
-            if (true === $request->getFreeShipping()) {
-                $amount = 0;
-            }
-
-            $method->setPrice($amount);
-            $method->setCost($amount);
+            return ['price' => $shippingPrice, 'cost' => $rate['cost']];
         }
 
-        $result->append($method);
+        // Fixed rate
+        $shippingProductSettings = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
 
-        return $result;
+        if ($productCode && isset($shippingProductSettings[$productCode])) {
+            $amount = $shippingProductSettings[$productCode]['price'];
+        } else {
+            // Default to the config price
+            $amount = $this->getConfigData('price');
+        }
+
+        if (true === $request->getFreeShipping()) {
+            $amount = 0;
+        }
+
+        return ['price' => $amount, 'cost' => $amount];
     }
 }

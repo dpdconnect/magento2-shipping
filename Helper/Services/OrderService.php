@@ -218,7 +218,7 @@ class OrderService extends AbstractHelper
      */
     private function getSelectedCode()
     {
-        if ($this->shipment && $this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+        if ($this->shipment && $this->shipment->hasData(Constants::SHIPMENT_EXTRA_DATA) && null !== $this->shipment->getData(Constants::SHIPMENT_EXTRA_DATA)) {
             return $this->shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'];
         }
 
