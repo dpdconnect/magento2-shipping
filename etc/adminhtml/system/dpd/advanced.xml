@@ -22,29 +22,43 @@
     <group id="advanced" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1"
            showInStore="1">
         <label>Advanced</label>
-        <field id="customs_content_type" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="customs_content_type" translate="label comment" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Default Content Type (Non Domestic)</label>
             <comment>Whether to use Documents or NonDocuments service for non domestic shipments. (Shipments within the EU are classed as domestic)</comment>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ContentType</source_model>
         </field>
-        <field id="include_return_label" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="include_return_label" translate="label comment" type="select" sortOrder="20" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Include return label</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <comment>Print a Return label at the same time as the shipping label</comment>
         </field>
-        <field id="picqer_mode" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="email_return_label" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+               showInStore="0">
+            <label>Email Return Label</label>
+            <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+            <comment>When creating a Return label, email it to the customer</comment>
+        </field>
+        <field id="email_return_label_template" translate="label comment" type="select" sortOrder="31" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+            <label>Return Label Email Template</label>
+            <comment>Email template chosen based on theme fallback when "Default" option is selected.</comment>
+            <source_model>Magento\Config\Model\Config\Source\Email\Template</source_model>
+            <depends>
+                <field id="email_return_label">1</field>
+            </depends>
+        </field>
+        <field id="picqer_mode" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Picqer mode</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
             <comment>If you enable this option the DPD Parcelshop name will be added to the company field instead of the first and last name.</comment>
         </field>
-        <field id="save_label_file" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="save_label_file" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Save labels as file</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
-        <field id="label_path" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="label_path" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Store labels in</label>
             <depends>
@@ -52,17 +66,17 @@
             </depends>
             <comment>The default directory is '/var/dpd_labels' in your Magento directory. Use full path if you want to use a custom directory.</comment>
         </field>
-        <field id="print_phone_number" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="print_phone_number" translate="label" type="select" sortOrder="70" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Print phone number on label</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
-        <field id="print_order_id" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="print_order_id" translate="label" type="select" sortOrder="80" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Print order Id on label</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
-        <field id="send_confirm_email" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1"
+        <field id="send_confirm_email" translate="label" type="select" sortOrder="90" showInDefault="1" showInWebsite="1"
                showInStore="1">
             <label>Send shipment confirmation Email</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>

@@ -22,13 +22,13 @@
 
     <preference for="DpdConnect\Shipping\Api\ApiCallbackInterface" type="DpdConnect\Shipping\Model\ApiCallback" />
 
-
     <type name="Magento\Sales\Api\Data\OrderInterface">
         <plugin name="initExtensionAttributes" type="DpdConnect\Shipping\Plugin\Api\Data\OrderInterfacePlugin"/>
     </type>
     <type name="Magento\Sales\Api\OrderRepositoryInterface">
         <plugin name="DpdConnectShippingOrderRepositoryInterface" type="DpdConnect\Shipping\Plugin\Api\OrderRepositoryInterfacePlugin"/>
     </type>
+
     <type name="Magento\Config\Model\Config\TypePool">
         <arguments>
             <argument name="sensitive" xsi:type="array">

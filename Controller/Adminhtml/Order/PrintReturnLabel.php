@@ -19,6 +19,8 @@
  */
 namespace DpdConnect\Shipping\Controller\Adminhtml\Order;
 
+use DpdConnect\Shipping\Helper\DpdSettings;
+use DpdConnect\Shipping\Model\Mail\Template\TransportBuilder;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Response\Http\FileFactory;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
@@ -57,6 +59,40 @@ class PrintReturnLabel extends \Magento\Backend\App\Action
      * @var \DpdConnect\Shipping\Model\ShipmentLabelFactory
      */
     private $shipmentLabelFactory;
+    /**
+     * @var Context
+     */
+    private $context;
+    /**
+     * @var \Magento\Framework\Translate\Inline\StateInterface
+     */
+    private $inlineTranslation;
+    /**
+     * @var \DpdConnect\Shipping\Model\Mail\Template\TransportBuilder
+     */
+    private $transportBuilder;
+    /**
+     * @var \Magento\Framework\App\Config\ScopeConfigInterface
+     */
+    private $scopeConfig;
+    /**
+     * @var \Psr\Log\LoggerInterface
+     */
+    private $loggerInterface;
+    /**
+     * @var \Magento\Store\Model\StoreManagerInterface
+     */
+    private $storeManager;
+
+    /**
+     * @var \Magento\Framework\Message\ManagerInterface
+     */
+    protected $messageManager;
+
+    /**
+     * @var DpdSettings
+     */
+    private $dpdSettings;
 
     /**
      * @param Context $context
@@ -72,14 +108,27 @@ class PrintReturnLabel extends \Magento\Backend\App\Action
         OrderCollectionFactory $collectionFactory,
         \DpdConnect\Shipping\Helper\Data $dataHelper,
         ShipmentLabelFactory $shipmentLabelFactory,
-        FileFactory $fileFactory
+        FileFactory $fileFactory,
+        \Magento\Framework\Translate\Inline\StateInterface $inlineTranslation,
+        TransportBuilder $transportBuilder,
+        \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
+        \Psr\Log\LoggerInterface $loggerInterface,
+        \Magento\Store\Model\StoreManagerInterface $storeManager,
+        DpdSettings $dpdSettings
     ) {
+        parent::__construct($context);
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
         $this->dataHelper = $dataHelper;
         $this->fileFactory = $fileFactory;
         $this->shipmentLabelFactory = $shipmentLabelFactory;
-        parent::__construct($context);
+        $this->inlineTranslation = $inlineTranslation;
+        $this->transportBuilder = $transportBuilder;
+        $this->scopeConfig = $scopeConfig;
+        $this->loggerInterface = $loggerInterface;
+        $this->storeManager = $storeManager;
+        $this->messageManager = $context->getMessageManager();
+        $this->dpdSettings = $dpdSettings;
     }
 
     /**
@@ -93,17 +142,20 @@ class PrintReturnLabel extends \Magento\Backend\App\Action
         try {
             $collection = $this->collectionFactory->create();
             $collection = $this->filter->getCollection($collection);
+            $emailReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_EMAIL_RETURN_LABEL);
 
             $labelPDFs = array();
 
             foreach ($collection as $order) {
                 if ($this->dataHelper->isDPDOrder($order)) {
-                    $label = $this->dataHelper->generateShippingLabel($order, null, 1, true);
+                    $labels = $this->dataHelper->generateShippingLabel($order, null, 1, true);
+                    if ($emailReturnLabel) {
+                        $this->sendEmail($order, $this->dataHelper->combinePDFFiles($labels));
+                    }
 
-                    $labelPDFs = array_merge($labelPDFs, $label);
+                    $labelPDFs = array_merge($labelPDFs, $labels);
                 }
             }
-
 
             if (count($labelPDFs) == 0) {
                 $this->messageManager->addErrorMessage(
@@ -139,5 +191,43 @@ class PrintReturnLabel extends \Magento\Backend\App\Action
         $resultRedirect->setPath($redirectPath);
 
         return $resultRedirect;
+    }
+
+    private function sendEmail(Order $order, $pdfData)
+    {
+        try
+        {
+            // Send Mail
+            $this->inlineTranslation->suspend();
+
+            // Reset the transport builder to make sure no previous email data is used
+            $this->transportBuilder->reset();
+            $transport = $this->transportBuilder
+                ->setTemplateIdentifier($this->dpdSettings->getValue(DpdSettings::ADVANCED_EMAIL_RETURN_LABEL_TEMPLATE))
+                ->setTemplateOptions([
+                    'area' => 'adminhtml',
+                    'store' => $this->storeManager->getStore()->getId()
+                ])
+                ->setTemplateVars([
+                    'order' => $order,
+                ])
+                ->setFromByScope('general', $order->getStoreId())
+                ->addTo($order->getCustomerEmail(), $order->getCustomerName())
+                ->addAttachment(
+                    $pdfData,
+                    'application/pdf',
+                    TransportBuilder::DISPOSITION_ATTACHMENT,
+                    TransportBuilder::ENCODING_BASE64,
+                    'labels.pdf'
+                )
+                ->getTransport();
+
+            $transport->sendMessage();
+
+            $this->inlineTranslation->resume();
+
+        } catch(\Exception $e){
+            $this->loggerInterface->debug($e->getMessage());
+        }
     }
 }

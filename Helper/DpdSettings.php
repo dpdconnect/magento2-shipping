@@ -34,6 +34,8 @@ class DpdSettings extends AbstractHelper
 
     const ADVANCED_SEND_CONFIRM_EMAIL = 'dpdshipping/advanced/send_confirm_email';
     const ADVANCED_INCLUDE_RETURN_LABEL = 'dpdshipping/advanced/include_return_label';
+    const ADVANCED_EMAIL_RETURN_LABEL = 'dpdshipping/advanced/email_return_label';
+    const ADVANCED_EMAIL_RETURN_LABEL_TEMPLATE = 'dpdshipping/advanced/email_return_label_template';
     const ADVANCED_PICQER_MODE = 'dpdshipping/advanced/picqer_mode';
     const ADVANCED_SAVE_LABEL_FILE = 'dpdshipping/advanced/save_label_file';
     const ADVANCED_LABEL_PATH = 'dpdshipping/advanced/label_path';

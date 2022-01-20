@@ -50,6 +50,8 @@
             </store_information>
             <advanced>
                 <include_return_label>0</include_return_label>
+                <email_return_label>0</email_return_label>
+                <email_return_label_template>dpdshipping_advanced_email_return_label_template</email_return_label_template>
                 <picqer_mode>0</picqer_mode>
                 <save_label_file>0</save_label_file>
                 <label_path/>
