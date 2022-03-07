@@ -92,15 +92,21 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
      */
     public function getConfig()
     {
+        try {
+            $output['dpd_parcelshop_token'] =
+                $this->client->authenticate()->getToken()->getPublicJWTToken(
+                    $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME),
+                    $this->crypt->decrypt($this->dpdSettings->getValue(DpdSettings::ACCOUNT_PASSWORD))
+                );
+        }catch(\Exception $exception){
+            $output['dpd_parcelshop_token'] = "";
+        }
+
         $output['dpd_parcelshop_url'] = $this->urlBuilder->getUrl('dpd/parcelshops', ['_secure' => true]);
         $output['dpd_parcelshop_save_url'] = $this->urlBuilder->getUrl('dpd/parcelshops/save', ['_secure' => true]);
         $output['dpd_googlemaps_width'] = $this->scopeConfig->getValue(DpdSettings::PARCELSHOP_MAPS_WIDTH);
         $output['dpd_googlemaps_height'] = $this->scopeConfig->getValue(DpdSettings::PARCELSHOP_MAPS_HEIGHT);
         $output['dpd_parcelshop_js_url'] = sprintf('%s/parcelshop/map/js', Client::ENDPOINT);
-        $output['dpd_parcelshop_token'] = $this->client->authenticate()->getToken()->getPublicJWTToken(
-            $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME),
-            $this->crypt->decrypt($this->dpdSettings->getValue(DpdSettings::ACCOUNT_PASSWORD))
-        );
         $output['dpd_parcelshop_use_dpd_key'] = $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_USE_DPD_KEY) === 1;
         $output['dpd_parcelshop_google_key'] = $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_CLIENT_KEY);
 
