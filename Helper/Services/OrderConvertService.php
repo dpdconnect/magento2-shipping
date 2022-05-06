@@ -193,7 +193,7 @@ class OrderConvertService extends AbstractHelper
      * @return array
      * @throws \Zend_Measure_Exception
      */
-    public function addParcelsFromPackages(Order $order, ?Order\Shipment $shipment = null, $packages)
+    public function addParcelsFromPackages(Order $order, ?Order\Shipment $shipment = null, $packages = [])
     {
         $parcels = [];
 
