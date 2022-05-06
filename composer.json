@@ -3,7 +3,6 @@
     "description": "DPD Connect - Magento2 Shipping",
     "require": {
         "php": ">=7.2",
-        "magento/framework": "^100.0|^101.0|^102.0|^103.0",
         "dpdconnect/php-sdk": "^1.1"
     },
     "type": "magento2-module",
@@ -39,6 +38,11 @@
         "magento": {
             "type": "composer",
             "url": "https://repo.magento.com/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     }
 }

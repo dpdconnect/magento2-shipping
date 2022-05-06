@@ -243,6 +243,7 @@ class Data extends AbstractHelper
      */
     public function combinePDFFiles(array $pdfFiles)
     {
+        error_reporting(E_ALL & ~E_DEPRECATED);
         $outputPdf = new Zend_Pdf();
         foreach ($pdfFiles as $content) {
             if (stripos($content, '%PDF-') !== false) {
