@@ -131,7 +131,7 @@ class OrderService extends AbstractHelper
             }
         }
 
-        return ('parcelshop' === $selectedProduct['type']);
+        return null !== $selectedProduct && 'parcelshop' === $selectedProduct['type'];
     }
 
     /**
