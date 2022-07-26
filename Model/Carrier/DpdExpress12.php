@@ -68,7 +68,7 @@ class DpdExpress12 extends AbstractCarrier implements
         $result->setCarrier($this->_code);
         $result->setCarrierTitle($carrierTitle);
         $result->setTracking($trackings);
-        $result->setUrl("https://tracking.dpd.de/status/{$this->_localeResolver->getLocale()}/parcel/" . $trackings);
+        $result->setUrl("https://www.dpdgroup.com/nl/mydpd/my-parcels/track?lang={$this->_localeResolver->getLocale()}&parcelNumber=" . $trackings);
 
         return $result;
     }
