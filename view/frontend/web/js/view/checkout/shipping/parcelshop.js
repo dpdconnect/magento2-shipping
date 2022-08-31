@@ -84,7 +84,7 @@ define([
             const shippingAddress = quote.shippingAddress();
 
             if (!shippingAddress.postcode || !shippingAddress.countryId) {
-                $('#dpd-connect-map-container').html('No address entered. Please enter your address and try again.')
+                $('#dpd-connect-map-container').html($.mage.__('No address entered. Please enter your address and try again.'));
                 $('#dpd-connect-map-container').show();
                 return;
             }
