@@ -119,7 +119,7 @@ class CheckShipment extends Action
             // Show template with orders overview and label type select boxes for customer
             return $this->resultFactory->create(ResultFactory::TYPE_PAGE);
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+            $this->messageManager->addErrorMessage('DPD Shipment error: ' . $e->getMessage());
             return $this->_redirect('sales/order/index');
         }
     }

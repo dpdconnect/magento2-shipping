@@ -6,6 +6,8 @@
 "Are you sure you want to print the shipping list of all selected orders?","Weet u zeker dat u een verzendlijst wilt genereren voor de geselecteerde bestellingen?"
 "DPD - There are no shipping labels generated.","DPD - Er zijn geen labels aangemaakt."
 "DPD - There are no return labels generated.","DPD - Er zijn geen retour labels aangemaakt."
+"DPD - Labels for the following orders have been created: %s", "DPD - Labels voor de volgende bestellingen zijn aangemaakt: %s"
+"DPD - Label for order %s could not be created: %s", "DPD - Label voor bestelling %s kon niet worden aangemaakt: %s"
 "Environment","Omgeving"
 "Please select an environment","Kies een omgeving"
 "Account settings","Account instellingen"

@@ -1,6 +1,6 @@
 <?php
 
-namespace DPDConnect\Shipping\Model\Attribute\Backend;
+namespace DpdConnect\Shipping\Model\Attribute\Backend;
 
 class ShippingDescription extends \Magento\Eav\Model\Entity\Attribute\Backend\AbstractBackend
 {

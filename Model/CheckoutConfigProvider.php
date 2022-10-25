@@ -59,6 +59,11 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     protected $checkoutSession;
 
     /**
+     * @var \Magento\Framework\Locale\Resolver
+     */
+    private $localeResolver;
+
+    /**
      * CheckoutConfigProvider constructor.
      *
      * @param UrlInterface $urlBuilder
@@ -74,7 +79,8 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         DPDClient $client,
         DpdSettings $dpdSettings,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
-        \Magento\Checkout\Model\Session $checkoutSession
+        \Magento\Checkout\Model\Session $checkoutSession,
+        \Magento\Framework\Locale\Resolver $localeResolver
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
@@ -82,6 +88,7 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $this->dpdSettings = $dpdSettings;
         $this->crypt = $crypt;
         $this->checkoutSession = $checkoutSession;
+        $this->localeResolver = $localeResolver;
     }
 
     /**
@@ -161,6 +168,11 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
 
             $output['dpd_carrier_shipping_selected_product'] = $cheapest['code'];
         }
+
+        $locale = $this->localeResolver->getLocale();
+        $localeParts = explode('_', $locale);
+        $languageCode = $localeParts[0];
+        $output['dpd_locale'] = $languageCode;
 
         return $output;
     }
