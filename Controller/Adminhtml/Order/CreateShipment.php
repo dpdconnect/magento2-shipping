@@ -144,9 +144,18 @@ class CreateShipment extends Action
             }
 
             $labelPDFs = [];
+            $generatedOrderLabel = [];
             foreach ($orders as $order) {
-                $label = $this->dataHelper->generateShippingLabel($order);
-                $labelPDFs = array_merge($labelPDFs, $label);
+                try {
+                    $label = $this->dataHelper->generateShippingLabel($order);
+                    $labelPDFs = array_merge($labelPDFs, $label);
+                    $generatedOrderLabel[] = $order->getIncrementId();
+                } catch (\Exception $e) {
+                    $this->messageManager->addErrorMessage(
+                        sprintf(__('DPD - Label for order %s could not be created: %s'), $order->getIncrementId(), $e->getMessage())
+                    );
+                    continue;
+                }
             }
 
             if (count($labelPDFs) == 0) {
@@ -157,6 +166,11 @@ class CreateShipment extends Action
                 return $this->_redirect($this->_redirect->getRefererUrl());
             }
 
+
+            $this->messageManager->addSuccessMessage(
+                sprintf(__('DPD - Labels for the following orders have been created: %s'), implode(',', $generatedOrderLabel))
+            );
+
             $resultPDF = $this->dataHelper->combinePDFFiles($labelPDFs);
 
             return $this->fileFactory->create(
@@ -166,7 +180,7 @@ class CreateShipment extends Action
                 'application/pdf'
             );
         } catch (\Exception $e) {
-            $this->messageManager->addErrorMessage($e->getMessage());
+            $this->messageManager->addErrorMessage('DPD Error (!): ' . $e->getMessage());
             return $this->_redirect($this->_redirect->getRefererUrl());
         }
     }

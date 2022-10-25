@@ -40,11 +40,15 @@ foreach($orders as $order) {
         document.getElementById('form-validation-failed').setAttribute('style', 'display: none;');
         document.getElementById('download-started').removeAttribute('style');
 
+        setTimeout(function () {
+            window.history.back();
+        }, 2000);
+
         return true;
     }
 </script>
 
-<form id="dpd_shipment_form" method="post" action="<?php echo $model->getPostUrl() ?>" onsubmit="return validate();">
+<form id="dpd_shipment_form" method="post" action="<?php echo $model->getPostUrl() ?>" onsubmit="return validate();" target="_blank">
     <?php echo $block->getBlockHtml('formkey')?>
     <div class="page-main-actions">
         <div class="page-actions" data-ui-id="page-actions-toolbar-content-header">

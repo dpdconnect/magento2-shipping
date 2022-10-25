@@ -91,11 +91,12 @@ define([
 
             DPDConnect.onParcelshopSelected = this.selectParcelShop;
 
+            const locale = window.checkoutConfig.dpd_locale || 'nl';
             const searchAddress = shippingAddress.street[0] + ' ' + shippingAddress.postcode + ' ' + shippingAddress.city + ' ' + shippingAddress.countryId;
             if (window.checkoutConfig.dpd_parcelshop_use_dpd_key) {
-                DPDConnect.show(window.checkoutConfig.dpd_parcelshop_token, searchAddress, 'nl');
+                DPDConnect.show(window.checkoutConfig.dpd_parcelshop_token, searchAddress, locale);
             } else {
-                DPDConnect.show(window.checkoutConfig.dpd_parcelshop_token, searchAddress, 'nl', window.checkoutConfig.dpd_parcelshop_google_key);
+                DPDConnect.show(window.checkoutConfig.dpd_parcelshop_token, searchAddress, locale, window.checkoutConfig.dpd_parcelshop_google_key);
             }
         },
 

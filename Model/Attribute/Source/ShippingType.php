@@ -1,6 +1,6 @@
 <?php
 
-namespace DPDConnect\Shipping\Model\Attribute\Source;
+namespace DpdConnect\Shipping\Model\Attribute\Source;
 
 use DpdConnect\Shipping\Helper\DPDClient;
 
