@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3f815786acbb9bfeafbbf3fb6bf8b97f",
+    "content-hash": "b94e4f4a83b73a6c8200c3a5146750a6",
     "packages": [
         {
             "name": "dpdconnect/php-sdk",
@@ -49,11 +49,6 @@
                 }
             ],
             "description": "DPD Connect PHP SDK",
-            "support": {
-                "email": "pluginsupport@dpd.nl",
-                "issues": "http://www.dpd.nl",
-                "source": "https://github.com/dpdconnect/php-sdk/tree/1.1.8"
-            },
             "time": "2022-05-06T08:46:46+00:00"
         }
     ],
@@ -1664,5 +1659,5 @@
         "php": ">=7.2"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "plugin-api-version": "1.1.0"
 }
