@@ -379,7 +379,7 @@ class Dpd extends AbstractCarrier implements
             $rate = $this->getRate($request);
 
             $shippingPrice = $rate['price'];
-            if (true === $request->getFreeShipping()) {
+            if ($request->getFreeShipping()) {
                 $shippingPrice = 0;
             }
 
@@ -396,7 +396,7 @@ class Dpd extends AbstractCarrier implements
             $amount = $this->getConfigData('price');
         }
 
-        if (true === $request->getFreeShipping()) {
+        if ($request->getFreeShipping()) {
             $amount = 0;
         }
 
