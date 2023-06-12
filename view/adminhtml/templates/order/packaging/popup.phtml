@@ -8,6 +8,7 @@
 
 /**
  * @var $block \Magento\Shipping\Block\Adminhtml\Order\Packaging
+ * @var \Magento\Framework\View\Helper\SecureHtmlRenderer $secureRenderer
  */
 ?>
 <?php
@@ -61,7 +62,7 @@ $girthEnabled = $block->isDisplayGirthValue() && $block->isGirthAllowed() ? 1 : 
                         weight_units:               pack.select('select[name="container_weight_units"]')[0].value,
                         dimension_units:            pack.select('select[name="container_dimension_units"]')[0].value,
                         shipping_product:           pack.select('select[name="shipping_product"]')[0].value,
-                        product_type:               pack.select('input[name="product_type"]')[0].value
+                        product_type:               'default'
                     };
 
                     if ('undefined' != typeof pack.select('input[name="expiration_date"]')[0]) {
@@ -247,32 +248,6 @@ $girthEnabled = $block->isDisplayGirthValue() && $block->isGirthAllowed() ? 1 : 
                     });
                     packItems = packagePrepareGrid.removeClassName('grid_prepare').addClassName('package_items');
                     packItems.select('.grid tbody tr').each(function (item) {
-                        // Set the package type if not currently set
-                        if ("" === packageBlock.select('input[name="product_type"]')[0].value) {
-                            var productType = jQuery(item).data('product-type');
-                            packageBlock.select('input[name="product_type"]')[0].value = productType;
-
-                            // Lock the label type if needed and hide fields if needed
-                            switch(productType) {
-                                case 'fresh':
-                                    packageBlock.select('select[name="shipping_product"]')[0].value = 'FRESH';
-                                    break;
-
-                                case 'freeze':
-                                    packageBlock.select('select[name="shipping_product"]')[0].value = 'FREEZE';
-                                    break;
-
-                                case 'default':
-                                default:
-                                    packageBlock.select('.freshfreeze').each(function(item) { item.remove(); });
-                                    break;
-                            }
-                        }
-                        // Don't allow different product types in one package
-                        else if (jQuery(item).data('product_type') !== packageBlock.select('input[name="product_type"]')[0].value) {
-                            item.remove();
-                            return;
-                        }
 
                         var itemId = item.select('[type="checkbox"]')[0].value;
                         var qtyValue  = parseFloat(item.select('[name="qty"]')[0].value);
@@ -294,11 +269,6 @@ $girthEnabled = $block->isDisplayGirthValue() && $block->isGirthAllowed() ? 1 : 
                     }.bind(packaging));
                 } else {
                     packagePrepareGrid.select('.grid tbody tr').each(function (item) {
-                        // Skip the product if the type is not the same as the package product type
-                        if (jQuery(item).data('product-type') !== packageBlock.select('input[name="product_type"]')[0].value) {
-                            item.remove();
-                            return;
-                        }
 
                         var itemId = item.select('[type="checkbox"]')[0].value;
                         var qtyValue  = parseFloat(item.select('[name="qty"]')[0].value);
@@ -367,21 +337,21 @@ $girthEnabled = $block->isDisplayGirthValue() && $block->isGirthAllowed() ? 1 : 
                 click: function () {
                     packaging.cancelPackaging();
                     this.closeModal();
-                    }
-                }, {
+                }
+            }, {
                 text: '<?php echo $block->escapeJs(__('Save')) ?>',
                 'attr': {'disabled':'disabled', 'data-action':'save-packages'},
                 'class': 'action-primary _disabled',
                 click: function () {
                     packaging.confirmPackaging();
-                    }
-                }, {
-                    text: '<?php echo $block->escapeJs(__('Add Package')) ?>',
-                    'attr': {'data-action':'add-packages'},
-                    'class': 'action-secondary',
-                    click: function () {
-                        packaging.newPackage();
-                    }
+                }
+            }, {
+                text: '<?php echo $block->escapeJs(__('Add Package')) ?>',
+                'attr': {'data-action':'add-packages'},
+                'class': 'action-secondary',
+                click: function () {
+                    packaging.newPackage();
+                }
             }]
         });
         jQuery(document).trigger('packaging:inited');

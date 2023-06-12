@@ -100,6 +100,17 @@
                            name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][title]"
                            value="<?php echo $block->getSettingsValue($product['code'], 'title', $product['name']) ?>"
                            class=" input-text admin__control-text" type="text">
+                    <p class="note"><?php echo sprintf('<strong>%s:</strong> %s', $product['name'], $product['description']) ?></p>
+                </div>
+            </div>
+
+            <div class="dpd-row">
+                <div class="label">Checkout description</div>
+                <div class="value">
+                    <input id="carriers_dpd_customerProducts_<?php echo $product['code'] ?>_checkoutDescription"
+                           name="groups[dpd][fields][customer_products][value][<?php echo $product['code'] ?>][checkoutDescription]"
+                           value="<?php echo $block->getSettingsValue($product['code'], 'checkoutDescription', $product['descriptionCheckout']) ?>"
+                           class=" input-text admin__control-text" type="text">
                 </div>
             </div>
 

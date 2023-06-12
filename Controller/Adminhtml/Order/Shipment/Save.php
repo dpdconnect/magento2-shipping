@@ -148,13 +148,16 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
 
                 // Create rows from all packages
                 $packages = $this->getRequest()->getParam('packages');
+                $packageId = 1;
                 $rows = [];
                 foreach($packages as $package) {
+                   $newPackage[$packageId] = $package;
+
                     $row = [
                         'code' => $package['params']['shipping_product'],
                         'productType' => $package['params']['product_type'],
                         'shipmentGeneralData' => $data,
-                        'packageData' => $package,
+                        'packageData' => $newPackage,
                     ];
 
                     if (isset($package['params']['expiration_date'])) {
@@ -164,7 +167,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
                     if (isset($package['params']['goods_description'])) {
                         $row['description'] = $package['params']['goods_description'];
                     }
-
+                    $packageId = $packageId + 1;
                     $rows[] = $row;
                 }
 
