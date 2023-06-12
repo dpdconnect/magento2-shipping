@@ -51,7 +51,7 @@ define([
                         // Check if we need to show a selectbox
                         var shippingProductSelectBox = '';
                         if (1 < window.checkoutConfig.dpd_carrier_available_shipping_products.length) {
-                            shippingProductSelectBox = '<select id="dpd_carrier_product">';
+                            shippingProductSelectBox = '<select id="dpd_carrier_product" style="width: 90%;">';
                             for (var i = 0; i < window.checkoutConfig.dpd_carrier_available_shipping_products.length; i++) {
                                 var product = window.checkoutConfig.dpd_carrier_available_shipping_products[i];
 
@@ -71,10 +71,26 @@ define([
                             shippingProductSelectBox = window.checkoutConfig.dpd_carrier_available_shipping_products[0].title;
                         }
 
+                        var tooltipContent = '';
+                        for (var i = 0; i < window.checkoutConfig.dpd_carrier_available_shipping_products.length; i++) {
+                            var product = window.checkoutConfig.dpd_carrier_available_shipping_products[i];
+
+                            // Hide the method if the country is not allowed
+                            if ('1' === product.onlySpecificCountries && -1 === product.allowedCountries.indexOf(quote.shippingAddress().countryId)) {
+                                continue;
+                            }
+
+                            tooltipContent += '<strong>' + product['title'] + ':</strong> ' + product['checkoutDescription'] + '<br>';
+                        }
+                        var tooltip = '<span class="dpd-tooltip">\n' +
+                            '    <a href="#" class="tooltip-toggle field-tooltip-action action-help">Info </a>\n' +
+                            '    <span class="tooltip-content">' + tooltipContent + '</span>\n' +
+                            '</span>';
+
                         var row = $(
                             '<tr class="row">' +
                             '<td class="col" colspan="' + colspan + '" id="dpd_carrier_container">' +
-                            shippingProductSelectBox +
+                            shippingProductSelectBox + tooltip +
                             '</td>' +
                             '</tr>');
 
