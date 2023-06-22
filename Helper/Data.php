@@ -31,6 +31,7 @@ use Magento\Sales\Model\Order\Shipment\TrackFactory;
 use Magento\Store\Model\ScopeInterface;
 use Zend_Pdf;
 use Zend_Pdf_Exception;
+use Magento\Shipping\Model\ShipmentNotifier;
 
 class Data extends AbstractHelper
 {
@@ -58,6 +59,10 @@ class Data extends AbstractHelper
      * @var BatchManager
      */
     private $batchManager;
+    /**
+     * @var ShipmentNotifier
+     */
+    private $shipmentNotifier;
 
     /**
      * Data constructor.
@@ -67,6 +72,7 @@ class Data extends AbstractHelper
      * @param TrackFactory $trackFactory
      * @param ShipmentManager $shipmentManager
      * @param BatchManager $batchManager
+     * @param ShipmentNotifier $shipmentNotifier
      */
     public function __construct(
         Context $context,
@@ -74,12 +80,14 @@ class Data extends AbstractHelper
         DpdSettings $dpdSettings,
         TrackFactory $trackFactory,
         ShipmentManager $shipmentManager,
-        BatchManager $batchManager
+        BatchManager $batchManager,
+        ShipmentNotifier $shipmentNotifier
     ) {
         $this->shipmentLabel = $shipmentLabel;
         $this->trackFactory = $trackFactory;
         $this->dpdSettings = $dpdSettings;
         $this->shipmentManager = $shipmentManager;
+        $this->shipmentNotifier = $shipmentNotifier;
 
         parent::__construct($context);
         $this->batchManager = $batchManager;
@@ -182,6 +190,11 @@ class Data extends AbstractHelper
             foreach ($resultLabels as $label) {
                 $pdfResult[] = base64_decode($label['label']);
             }
+        }
+
+        $sendConfirmEmail = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_SEND_CONFIRM_EMAIL);
+        if ($sendConfirmEmail) {
+            $this->shipmentNotifier->notify($shipment);
         }
 
         return $pdfResult;
