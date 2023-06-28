@@ -34,28 +34,28 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      *
      * @var int
      */
-    protected $_importWebsiteId = 0;
+    protected $importWebsiteId = 0;
 
     /**
      * Errors in import process
      *
      * @var array
      */
-    protected $_importErrors = [];
+    protected $importErrors = [];
 
     /**
      * Count of imported table rates
      *
      * @var int
      */
-    protected $_importedRows = 0;
+    protected $importedRows = 0;
 
     /**
      * Array of unique table rate keys to protect from duplicates
      *
      * @var array
      */
-    protected $_importUniqueHash = [];
+    protected $importUniqueHash = [];
 
     /**
      * Array of countries keyed by iso2 code
@@ -126,10 +126,16 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      * @var \Magento\Directory\Model\ResourceModel\Country\CollectionFactory
      */
     protected $countryCollectionFactory;
+
     /**
      * @var \Magento\Directory\Model\ResourceModel\Region\CollectionFactory
      */
     protected $regionCollectionFactory;
+
+    /**
+     * @var \Magento\Framework\Filesystem\Directory\ReadFactory
+     */
+    private $readFactory;
 
     /**
      * Filesystem instance
@@ -266,7 +272,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         try {
             if (count($fields) && count($values)) {
                 $this->getConnection()->insertArray($this->getMainTable(), $fields, $values);
-                $this->_importedRows += count($values);
+                $this->importedRows += count($values);
             }
         } catch (\Magento\Framework\Exception\LocalizedException $e) {
             $connection->rollback();
@@ -630,7 +636,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
             ];
 
             $this->getConnection()->insertArray($this->getMainTable(), $columns, $data);
-            $this->_importedRows += count($data);
+            $this->importedRows += count($data);
         }
 
         return $this;
