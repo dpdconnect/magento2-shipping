@@ -141,10 +141,12 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             }
 
             $title = $shippingProductsConfig[$product['code']]['title'];
+            $checkoutDescription = $shippingProductsConfig[$product['code']]['checkoutDescription'] ?? '';
+            
             $availableShippingProducts[] = [
                 'code' => $product['code'],
                 'title' => $title,
-                'checkoutDescription' => $shippingProductsConfig[$product['code']]['checkoutDescription'],
+                'checkoutDescription' => $checkoutDescription,
                 'price' => $shippingProductsConfig[$product['code']]['price'],
                 'onlySpecificCountries' => $shippingProductsConfig[$product['code']]['onlySpecificCountries'],
                 'allowedCountries' => isset($shippingProductsConfig[$product['code']]['allowedCountries']) ? $shippingProductsConfig[$product['code']]['allowedCountries'] : [],
