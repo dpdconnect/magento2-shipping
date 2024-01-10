@@ -19,7 +19,6 @@
  */
 namespace DpdConnect\Shipping\Helper;
 
-use Magento\Framework\App\CacheInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use DpdConnect\Sdk\Objects\ObjectFactory;
 use DpdConnect\Sdk\Objects\MetaData;
@@ -51,9 +50,9 @@ class DPDClient extends AbstractHelper
      */
     private $moduleList;
     /**
-     * @var CacheInterface
+     * @var DpdCache
      */
-    private $cache;
+    private $dpdCache;
 
     /**
      * DPDClient constructor.
@@ -62,7 +61,7 @@ class DPDClient extends AbstractHelper
      * @param Encryptor $crypt
      * @param ProductMetadataInterface $productMetadata
      * @param ModuleListInterface $moduleList
-     * @param CacheInterface $cache
+     * @param DpdCache $cache
      */
     public function __construct(
         Context $context,
@@ -70,13 +69,13 @@ class DPDClient extends AbstractHelper
         Encryptor $crypt,
         ProductMetadataInterface $productMetadata,
         ModuleListInterface $moduleList,
-        CacheInterface $cache
+        DpdCache $dpdCache
     ) {
         $this->dpdSettings = $dpdSettings;
         $this->crypt = $crypt;
         $this->productMetadata = $productMetadata;
         $this->moduleList = $moduleList;
-        $this->cache = $cache;
+        $this->dpdCache = $dpdCache;
         parent::__construct($context);
     }
 
@@ -102,14 +101,16 @@ class DPDClient extends AbstractHelper
         );
 
         $client->getAuthentication()->setJwtToken(
-            $this->cache->load('dpdconnect_jwt_token') ?: null
+            $this->dpdCache->getCache('dpdconnect_jwt_token') ?: null
         );
 
         // This is where we save the (new) JWT token to the cache
         $client->getAuthentication()->setTokenUpdateCallback(function (string $jwtToken) use ($client) {
-            $this->cache->save($jwtToken, 'dpdconnect_jwt_token');
+            $this->dpdCache->setCache('dpdconnect_jwt_token', $jwtToken, 7200);
             $client->getAuthentication()->setJwtToken($jwtToken);
         });
+
+        $client->setCacheCallable($this->dpdCache);
 
         return $client;
     }

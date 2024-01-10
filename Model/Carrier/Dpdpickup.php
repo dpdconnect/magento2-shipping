@@ -144,7 +144,11 @@ class Dpdpickup extends AbstractCarrier implements
                 $request->setPackageValue($oldValue - $freePackageValue);
             }
 
-            $conditionName = $this->_scopeConfig->getValue('carriers/dpdpickup/condition_name', \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE);
+            $conditionName = $this->_scopeConfig->getValue(
+                'carriers/dpdpickup/condition_name',
+                \Magento\Store\Model\ScopeInterface::SCOPE_WEBSITE,
+                $request->getWebsiteId()
+            );
             $request->setConditionName($conditionName ? $conditionName : $this->_defaultConditionName);
 
             // Package weight and qty free shipping
