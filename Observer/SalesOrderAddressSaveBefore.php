@@ -76,10 +76,10 @@ class SalesOrderAddressSaveBefore implements ObserverInterface
         $shippingAddress->setCountryId($order->getDpdParcelshopCountry());
         $shippingAddress->setCompany('');
 
-        if($this->scopeConfig->getValue('dpdshipping/account_settings/picqer_mode')) {
+        if($this->scopeConfig->getValue('dpdshipping/advanced/picqer_mode')) {
             $shippingAddress->setFirstname($order->getBillingAddress()->getFirstname());
             $shippingAddress->setLastname($order->getBillingAddress()->getLastname());
-            $shippingAddress->setCompany('DPD ParcelShop: ' . $order->getDpdCompany());
+            $shippingAddress->setCompany('DPD ParcelShop: ' . $order->getDpdParcelshopName());
         }
 
         // empty this otherwise you'd get customer data and DPD parcelshop data mixed up

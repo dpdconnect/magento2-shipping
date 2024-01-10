@@ -41,8 +41,7 @@ class ShipmentManager
         OrderConvert $orderConvert,
         TransactionFactory $transactionFactory,
         DpdSettings $dpdSettings,
-        TrackFactory $trackFactory,
-
+        TrackFactory $trackFactory
     ) {
         $this->orderConvert = $orderConvert;
         $this->transactionFactory = $transactionFactory;

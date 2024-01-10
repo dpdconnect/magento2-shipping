@@ -3,8 +3,8 @@
     "description": "DPD Connect - Magento2 Shipping",
     "require": {
         "php": ">=7.2",
-        "dpdconnect/php-sdk": "1.1.8",
-        "magento/framework": ">=103.0.6"
+        "magento/framework": ">=103.0.6",
+        "dpdconnect/php-sdk": "^1.1"
     },
     "type": "magento2-module",
     "license": "GPL-3.0-or-later",
@@ -31,7 +31,6 @@
         }
     },
     "require-dev": {
-        "object-calisthenics/phpcs-calisthenics-rules": "^3.0",
         "magento/marketplace-eqp": "^2.0",
         "overtrue/phplint": "^1.1"
     },
@@ -43,7 +42,8 @@
     },
     "config": {
         "allow-plugins": {
-            "dealerdirect/phpcodesniffer-composer-installer": true
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "magento/composer-dependency-version-audit-plugin": false
         }
     }
 }
