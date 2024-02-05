@@ -96,12 +96,12 @@ class RateQuery
                 $bindNameKey = sprintf(':condition_name_%d', $i);
                 $bindValueKey = sprintf(':condition_value_%d', $i);
                 $bind[$bindNameKey] = $conditionName;
-                $bind[$bindValueKey] = $this->request->getData($conditionName);
+                $bind[$bindValueKey] = $this->request->getData($conditionName) ?? 0;
                 $i++;
             }
         } else {
             $bind[':condition_name'] = $this->request->getConditionName();
-            $bind[':condition_value'] = $this->request->getData($this->request->getConditionName());
+            $bind[':condition_value'] = $this->request->getData($this->request->getConditionName()) ?? 0;
         }
 
         return $bind;
