@@ -198,13 +198,13 @@ class OrderConvertService extends AbstractHelper
         $parcels = [];
 
         foreach ($packages as $package) {
-
             $weight = floatval($package['weight'] ?? $package['params']['weight'] ?? 0);
-            $unit = $package['weight_units'] ?? $package['params']['weight_units'] ?? \Zend_Measure_Weight::KILOGRAM;
+            $unit = $package['weight_units'] ?? $package['params']['weight_units'] ?? 'KILOGRAM';
 
-            $unit = new \Zend_Measure_Weight($weight, $unit);
-            $unit->convertTo(\Zend_Measure_Weight::KILOGRAM, 2);
-            $weight = round(floatval($unit->getValue(2)) * 100, 0);
+            if ($unit === 'POUND') {
+                $weight = $weight * 0.45359237;
+            }
+
             $parcel = [
                 'customerReferences' => [
                     $order->getIncrementId() ?? '',

@@ -172,7 +172,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
                 }
 
                 $order->setData(Constants::ORDER_EXTRA_SHIPPING_DATA, $rows);
-                $this->dataHelper->generateShippingLabel($order);
+                $this->dataHelper->generateShippingLabel($order, null, $packages);
 
                 $order->setCustomerNoteNotify(!empty($data['send_email']));
 
