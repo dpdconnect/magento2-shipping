@@ -65,9 +65,10 @@ define([
                             });
 
                         var parcelshop = sessionStorage.getItem('selectedParcelshop');
-                        if (parcelshop) {
+                        if (parcelshop && JSON.parse(parcelshop).isoAlpha2 === quote.shippingAddress().countryId) {
                             this.selectParcelShop(JSON.parse(parcelshop));
                         } else {
+                            sessionStorage.removeItem('selectedParcelshop');
                             this.showMap();
                         }
                     }
@@ -129,23 +130,30 @@ define([
             sessionStorage.setItem('selectedParcelshop', JSON.stringify(parcelshop));
             window.dpdShippingAddress = parcelshop;
 
-            var options = {
-                method: 'POST',
-                showLoader: true,
-                url: window.checkoutConfig.dpd_parcelshop_save_url,
-                data: parcelshop
-            };
+            if (parcelshop.isoAlpha2 === quote.shippingAddress().countryId) {
+                var options = {
+                    method: 'POST',
+                    showLoader: true,
+                    url: window.checkoutConfig.dpd_parcelshop_save_url,
+                    data: parcelshop
+                };
 
-            $.ajax(options).done((response) => {
-                $('#dpd-connect-selected-container').html(response);
+                $.ajax(options).done((response) => {
+                    $('#dpd-connect-selected-container').html(response);
 
-                $('#dpd_company').html(parcelshop.company);
-                $('#dpd_street').html(parcelshop.street + ' ' + parcelshop.houseNo);
-                $('#dpd_zipcode_and_city').html(parcelshop.zipCode + ' ' + parcelshop.city);
-                $('#dpd_country').html(parcelshop.isoAlpha2);
-                $('.dpd-shipping-information').show();
-                $('#dpd-connect-selected-container').show();
-            });
+                    $('#dpd_company').html(parcelshop.company);
+                    $('#dpd_street').html(parcelshop.street + ' ' + parcelshop.houseNo);
+                    $('#dpd_zipcode_and_city').html(parcelshop.zipCode + ' ' + parcelshop.city);
+                    $('#dpd_country').html(parcelshop.isoAlpha2);
+                    $('.dpd-shipping-information').show();
+                    $('#dpd-connect-selected-container').show();
+                });
+            } else {
+                sessionStorage.removeItem('selectedParcelshop');
+                $('#dpd-connect-map-container').html($.mage.__('Country of selected parcel shop is not equal to selected country. Please enter a valid address and try again.'));
+                $('#dpd-connect-map-container').show();
+                this.showMap();
+            }
         }
     });
 });
