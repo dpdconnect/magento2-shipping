@@ -28,7 +28,7 @@
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
 
-        <field id="async_threshold" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="async_threshold" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Async threshold</label>
             <comment>Mass generation of labels above this number will be done Async</comment>
             <depends>
@@ -36,7 +36,7 @@
             </depends>
         </field>
 
-        <field id="endpoint" translate="label" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
+        <field id="endpoint" translate="label comment" type="text" sortOrder="2" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>Endpoint (ONLY use this if instructed, otherwise leave empty)</label>
             <comment>The DPD Connect endpoint to use (useful for development)</comment>
         </field>

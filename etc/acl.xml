@@ -1,0 +1,21 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Acl/etc/acl.xsd">
+    <acl>
+        <resources>
+            <resource id="Magento_Backend::admin">
+                <resource id="Magento_Sales::sales">
+                    <resource id="DpdConnect_Shipping::dpd_menu" title="DPD" translate="title" sortOrder="10">
+                        <resource id="DpdConnect_Shipping::batch_menu" title="DPD Batches" translate="title" sortOrder="11" />
+                        <resource id="DpdConnect_Shipping::label_menu" title="DPD Labels" translate="title" sortOrder="12" />
+                    </resource>
+                </resource>
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="DpdConnect_Shipping::configuration" title="DPD Parcelservice" translate="title" sortOrder="340" />
+                        </resource>
+                    </resource>
+                </resource>
+            </resource>
+        </resources>
+    </acl>
+</config>

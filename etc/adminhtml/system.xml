@@ -23,7 +23,7 @@
         <section id="dpdshipping" translate="label" type="text" sortOrder="340" showInDefault="1" showInWebsite="1" showInStore="1">
             <label>DPD Parcelservice</label>
             <tab>sales</tab>
-            <resource>Sales_DPDShipping::configuration</resource>
+            <resource>DpdConnect_Shipping::configuration</resource>
             <class>dpd-shipping</class>
 
             <group id="header" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
