@@ -27,6 +27,7 @@ use DpdConnect\Shipping\Helper\DPDClient;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\ScopeInterface;
 
 class OrderConvertService extends AbstractHelper
 {
@@ -89,7 +90,7 @@ class OrderConvertService extends AbstractHelper
         }
 
         // Fetch the code from the shipment, if any, else default to the order code
-        if ($shipment && $shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)) {
+        if ($shipment && !empty($shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)['code'])) {
             return $shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'];
         }
 
@@ -164,7 +165,7 @@ class OrderConvertService extends AbstractHelper
             $parcel = [
                 'customerReferences' => [
                     $order->getIncrementId() ?? '',
-                    ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID) ? $order->getEntityId() : ''),
+                    ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID, ScopeInterface::SCOPE_STORE, $order->getStoreId()) ? $order->getEntityId() : ''),
                     $order->getDpdParcelshopId() ?? '',
                     $shipment->getEntityId() ?? '',
                 ],
@@ -208,7 +209,7 @@ class OrderConvertService extends AbstractHelper
             $parcel = [
                 'customerReferences' => [
                     $order->getIncrementId() ?? '',
-                    ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID) ? $order->getIncrementId() : ''),
+                    ($this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_PRINT_ORDER_ID, ScopeInterface::SCOPE_STORE, $order->getStoreId()) ? $order->getIncrementId() : ''),
                     $order->getDpdParcelshopId() ?? '',
                     $shipment->getEntityId(),
                 ],
@@ -242,20 +243,20 @@ class OrderConvertService extends AbstractHelper
 
         $shipment = [
             'orderId' => $order->getIncrementId(),
-            'sendingDepot' => $this->dpdSettings->getValue(DpdSettings::ACCOUNT_DEPOT),
+            'sendingDepot' => $this->dpdSettings->getValue(DpdSettings::ACCOUNT_DEPOT, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
             'sender' => [
-                'name1' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_NAME1),
-                'street' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_STREET),
-                'housenumber' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_HOUSE_NUMBER),
-                'country' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY),
-                'postalcode' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_ZIP_CODE),
-                'city' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_CITY),
-                'phoneNumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE),
-                'email' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EMAIL),
+                'name1' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_NAME1, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'street' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_STREET, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'housenumber' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_HOUSE_NUMBER, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'country' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'postalcode' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_ZIP_CODE, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'city' => $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_CITY, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'phoneNumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_PHONE, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'email' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EMAIL, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
                 'commercialAddress' => true,
-                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
-                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
-                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
+                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
             ],
             'receiver' => $this->getReceiverData($order),
             'product' => [
@@ -272,16 +273,16 @@ class OrderConvertService extends AbstractHelper
             'totalAmount' => (float) $order->getBaseGrandTotal(),
             'customsLines' => $this->addCustomsLines($order),
             'consignor' => [
-                'name1' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_NAME),
-                'street' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_STREET),
-                'housenumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_HOUSE_NUMBER),
-                'postalcode' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_ZIP_CODE),
-                'city' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_CITY),
-                'country' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_COUNTRY),
+                'name1' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_NAME, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'street' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_STREET, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'housenumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_HOUSE_NUMBER, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'postalcode' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_ZIP_CODE, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'city' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_CITY, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'country' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_COUNTRY, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
                 'commercialAddress' => true,
-                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER),
-                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI),
-                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN),
+                'vatnumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_VAT_NUMBER, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'eorinumber' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_EORI, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
+                'sprn' => $this->dpdSettings->getValue(DpdSettings::STORE_INFORMATION_SPRN, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
             ],
             'consignee' => $this->getReceiverData($order)
         ];
@@ -331,7 +332,7 @@ class OrderConvertService extends AbstractHelper
         foreach ($order->getItems() as $item) {
             /** @var \Magento\Catalog\Model\Product $product */
             $product = $item->getProduct();
-            $originCountry = $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY);
+            $originCountry = $this->dpdSettings->getValue(DpdSettings::SHIPPING_ORIGIN_COUNTRY, ScopeInterface::SCOPE_STORE, $order->getStoreId());
             $hsCode = '';
 
             if ($product !== null) {

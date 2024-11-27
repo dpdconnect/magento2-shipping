@@ -103,7 +103,7 @@ class Packaging extends \Magento\Shipping\Block\Adminhtml\Order\Packaging
         $order = $this->getOrder();
 
         $availableProducts = [];
-        $shippingProducts = $this->client->authenticate()->getProduct()->getList();
+        $shippingProducts = $this->client->authenticate($order->getStoreId())->getProduct()->getList();
         foreach ($shippingProducts as $shippingProduct) {
             if ('parcelshop' === $shippingProduct['type'] && !$this->isParcelshopOrder($order)) {
                 continue;

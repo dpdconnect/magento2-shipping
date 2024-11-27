@@ -150,6 +150,7 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
                 $packages = $this->getRequest()->getParam('packages');
                 $packageId = 1;
                 $rows = [];
+
                 foreach($packages as $package) {
                    $newPackage[$packageId] = $package;
 

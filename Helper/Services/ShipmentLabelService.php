@@ -31,6 +31,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Url;
 use Magento\Sales\Model\Order;
+use Magento\Store\Model\ScopeInterface;
 
 class ShipmentLabelService extends AbstractHelper
 {
@@ -172,7 +173,7 @@ class ShipmentLabelService extends AbstractHelper
             $shipmentData[] = $this->orderConvertService->convert($order, $shipment, $includeReturn, $parcels);
         }
 
-        $result = $this->createShipment($shipmentData);
+        $result = $this->createShipment($shipmentData, $order);
         $labels = $result->getContent()['labelResponses'];
 
         foreach ($labels as $label) {
@@ -224,7 +225,7 @@ class ShipmentLabelService extends AbstractHelper
 
         $weight = $this->orderConvertService->getOrderWeight($order);
 
-        $result = $this->createShipment($shipmentData);
+        $result = $this->createShipment($shipmentData, $order);
         $labels = $result->getContent()['labelResponses'];
 
 
@@ -308,17 +309,18 @@ class ShipmentLabelService extends AbstractHelper
 
     /**
      * @param array $shipmentData
-     * @return mixed
+     * @param Order $order
+     * @return \DpdConnect\Sdk\Common\ResourceClient|int
      * @throws RequestException
      */
-    private function createShipment(array $shipmentData)
+    private function createShipment(array $shipmentData, Order $order)
     {
-        $dpdClient = $this->dpdClient->authenticate();
+        $dpdClient = $this->dpdClient->authenticate($order->getStoreId());
 
         $request = [
             'printOptions' => [
                 'printerLanguage' => 'PDF',
-                'paperFormat' => $this->dpdSettings->getValue(DpdSettings::ACCOUNT_PRINT_FORMAT),
+                'paperFormat' => $this->dpdSettings->getValue(DpdSettings::ACCOUNT_PRINT_FORMAT, ScopeInterface::SCOPE_STORE, $order->getStoreId()),
                 'verticalOffset' => 0,
                 'horizontalOffset' => 0,
             ],
