@@ -28,6 +28,7 @@ use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Encryption\Encryptor;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Store\Model\ScopeInterface;
 
 class DPDClient extends AbstractHelper
 {
@@ -80,10 +81,11 @@ class DPDClient extends AbstractHelper
     }
 
     /**
-     * @return \DpdConnect\Sdk\Client
+     * @param int|null $storeId
+     * @return Client
      * @throws \Exception
      */
-    public function authenticate()
+    public function authenticate(?int $storeId = null)
     {
         $url = $this->dpdSettings->getValue(DpdSettings::API_ENDPOINT);
         $pluginVersion = $this->moduleList
@@ -96,17 +98,17 @@ class DPDClient extends AbstractHelper
         ]));
 
         $client = $clientBuiler->buildAuthenticatedByPassword(
-            $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME),
-            $this->crypt->decrypt($this->dpdSettings->getValue(DpdSettings::ACCOUNT_PASSWORD))
+            $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME,ScopeInterface::SCOPE_STORE, $storeId),
+            $this->crypt->decrypt($this->dpdSettings->getValue(DpdSettings::ACCOUNT_PASSWORD,ScopeInterface::SCOPE_STORE, $storeId))
         );
 
         $client->getAuthentication()->setJwtToken(
-            $this->dpdCache->getCache('dpdconnect_jwt_token') ?: null
+            $this->dpdCache->getCache('dpdconnect_jwt_token_' . ($storeId ?? 0)) ?: null
         );
 
         // This is where we save the (new) JWT token to the cache
         $client->getAuthentication()->setTokenUpdateCallback(function (string $jwtToken) use ($client) {
-            $this->dpdCache->setCache('dpdconnect_jwt_token', $jwtToken, 7200);
+            $this->dpdCache->setCache('dpdconnect_jwt_token_' . ($storeId ?? 0), $jwtToken, 7200);
             $client->getAuthentication()->setJwtToken($jwtToken);
         });
 

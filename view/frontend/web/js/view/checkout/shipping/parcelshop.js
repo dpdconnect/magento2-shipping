@@ -82,6 +82,9 @@ define([
 
 
         showMap: function () {
+            $('#dpd-connect-selected-container').html('');
+            $('#dpd-connect-selected-container').hide();
+
             const shippingAddress = quote.shippingAddress();
 
             if (!shippingAddress.postcode || !shippingAddress.countryId) {

@@ -22,6 +22,7 @@ namespace DpdConnect\Shipping\Helper;
 use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
 use DpdConnect\Shipping\Services\BatchManager;
 use DpdConnect\Shipping\Services\ShipmentManager;
+use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Exception\AlreadyExistsException;
@@ -110,10 +111,10 @@ class Data extends AbstractHelper
      */
     public function generateShippingLabel(Order $order, Order\Shipment $shipment = null, $parcels = 1, $isReturn = false)
     {
-        $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL);
+        $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL, ScopeInterface::SCOPE_STORE, $order->getStoreId());
 
         // New way of processing batch requests
-        if($order->hasData(Constants::ORDER_EXTRA_SHIPPING_DATA)) {
+        if($order->hasData(Constants::ORDER_EXTRA_SHIPPING_DATA) && !is_array($parcels)) {
             $pdfResult = [];
             $shipmentRows = $order->getData(Constants::ORDER_EXTRA_SHIPPING_DATA);
             foreach ($shipmentRows as $shipmentRow) {
@@ -192,7 +193,7 @@ class Data extends AbstractHelper
             }
         }
 
-        $sendConfirmEmail = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_SEND_CONFIRM_EMAIL);
+        $sendConfirmEmail = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_SEND_CONFIRM_EMAIL, 'store', $order->getStoreId());
         if ($sendConfirmEmail) {
             $this->shipmentNotifier->notify($shipment);
         }
