@@ -22,31 +22,31 @@
     <group id="product_attribute" translate="label" sortOrder="50" showInDefault="1" showInWebsite="1"
            showInStore="0">
         <label>Product attributes</label>
-        <field id="hs_code" translate="label" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="hs_code" translate="label comment" type="select" sortOrder="25" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Harmonized System code</label>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
             <comment>The product Harmonized System code</comment>
         </field>
 
-        <field id="dimension_length" translate="label" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="dimension_length" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Product Length</label>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
             <comment>The product length attribute</comment>
         </field>
 
-        <field id="dimension_width" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="dimension_width" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Product Width</label>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
             <comment>The product width attribute</comment>
         </field>
 
-        <field id="dimension_height" translate="label" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="dimension_height" translate="label comment" type="select" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Product Height</label>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
             <comment>The product height attribute</comment>
         </field>
 
-        <field id="dimension_depth" translate="label" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
+        <field id="dimension_depth" translate="label comment" type="select" sortOrder="50" showInDefault="1" showInWebsite="1" showInStore="0" canRestore="1">
             <label>Product Depth</label>
             <source_model>DpdConnect\Shipping\Config\Source\Settings\ProductAttribute</source_model>
             <comment>The product depth attribute</comment>
