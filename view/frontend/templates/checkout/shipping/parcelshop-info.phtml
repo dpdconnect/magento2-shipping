@@ -17,6 +17,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+use Magento\Framework\Escaper;
+
+/** @var Escaper $escaper */
 $parcelshop = $this->getParcelshop();
 $quote = $this->getQuote();
 ?>
@@ -25,26 +29,26 @@ $quote = $this->getQuote();
         <tbody>
             <tr>
                 <td style="padding: 3px; padding-right: 15px;" rowspan="2">
-                    <img style="width: 80px; height: 80px;" src="<?php echo $this->getViewFileUrl('DpdConnect_Shipping::images/dpd_parcelshop_logo.png') ?>" alt="DPD Parcelshop logo"/>
+                    <img style="width: 80px; height: 80px;" src="<?= $escaper->escapeUrl($this->getViewFileUrl('DpdConnect_Shipping::images/dpd_parcelshop_logo.png')) ?>" alt="DPD Parcelshop logo"/>
                 </td>
                 <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                    <strong><?php echo $quote->getData('dpd_parcelshop_name') ?></strong><br />
-                    <?php echo $quote->getData('dpd_parcelshop_street') ?> <?php echo $quote->getData('dpd_parcelshop_house_number') ?><br />
-                    <?php echo $quote->getData('dpd_parcelshop_zip_code') . " " . $quote->getData('dpd_parcelshop_city') ?>
+                    <strong><?= $escaper->escapeHtml($quote->getData('dpd_parcelshop_name')) ?></strong><br />
+                    <?= sprintf('%s %s', $escaper->escapeHtml($quote->getData('dpd_parcelshop_street')), $escaper->escapeHtml($quote->getData('dpd_parcelshop_house_number'))) ?><br />
+                    <?= sprintf('%s %s', $escaper->escapeHtml($quote->getData('dpd_parcelshop_zip_code')), $escaper->escapeHtml($quote->getData('dpd_parcelshop_city'))) ?>
                 </td>
             </tr>
             <tr>
                 <td style="padding: 3px; padding-top: 6px; width: 100%;" colspan="3">
-                    <strong><?php echo __('Opening hours') ?></strong>
+                    <strong><?= /* @noEscape */ __('Opening hours') ?></strong>
                 </td>
             </tr>
-            <?php echo __($this->getOpeningHoursHtml()) ?>
+            <?= /* @noEscape */ __($this->getOpeningHoursHtml()) ?>
             <tr>
                 <td style="padding: 3px; border: none;"></td>
                 <td style="padding: 3px; width: 100%;" colspan="3">
-                    <a href="#" class="dpd_connect_change_parcelshop"><?php echo __('Click here to change your ParcelShop'); ?></a>
+                    <a href="#" class="dpd_connect_change_parcelshop"><?= $escaper->escapeHtml(__('Click here to change your ParcelShop')) ?></a>
                     <input type="hidden" class="DPD-confirmed" value="1"/>
-                    <input type="hidden" class="parcelshopId" value="<?php echo $quote->getData('dpd_parcelshop_id') ?>" />
+                    <input type="hidden" class="parcelshopId" value="<?= $escaper->escapeHtmlAttr($quote->getData('dpd_parcelshop_id')) ?>" />
                 </td>
             </tr>
         </tbody>
