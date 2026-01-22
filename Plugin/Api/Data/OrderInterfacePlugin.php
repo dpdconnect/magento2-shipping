@@ -46,7 +46,7 @@ class OrderInterfacePlugin
      */
     public function afterGetExtensionAttributes(
         OrderInterface $entity,
-        OrderExtensionInterface $extensionAttributes = null
+        ?OrderExtensionInterface $extensionAttributes = null
     ): OrderExtensionInterface {
         if ($extensionAttributes === null) {
             $extensionAttributes = $this->extensionFactory->create();

@@ -147,7 +147,7 @@ abstract class AbstractCarrier extends \Magento\Shipping\Model\Carrier\AbstractC
      * @return array
      * @SuppressWarnings(PHPMD.UnusedFormalParameter)
      */
-    public function getContainerTypes(DataObject $params = null)
+    public function getContainerTypes(?DataObject $params = null)
     {
         return [
             ContentType::CONTENT_TYPE_NON_DOC => __('Non Documents'),

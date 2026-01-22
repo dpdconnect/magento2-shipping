@@ -164,7 +164,7 @@ class ShipmentLabelService extends AbstractHelper
      * @return array
      * @throws RequestException
      */
-    public function generateLabelMultiPackage(Order $order, $isReturn = false, Order\Shipment $shipment = null, $parcels = [], bool $includeReturn = false)
+    public function generateLabelMultiPackage(Order $order, $isReturn = false, ?Order\Shipment $shipment = null, $parcels = [], bool $includeReturn = false)
     {
         $this->orderService->setOrder($order);
 
@@ -214,7 +214,7 @@ class ShipmentLabelService extends AbstractHelper
      * @return array
      * @throws RequestException
      */
-    public function generateLabel(Order $order, $isReturn = false, Order\Shipment $shipment = null, $parcels = 1, bool $includeReturn = false)
+    public function generateLabel(Order $order, $isReturn = false, ?Order\Shipment $shipment = null, $parcels = 1, bool $includeReturn = false)
     {
         $this->orderService->setOrder($order);
 

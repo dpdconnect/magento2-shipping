@@ -109,7 +109,7 @@ class Data extends AbstractHelper
      * @throws LocalizedException
      * @throws \DpdConnect\Sdk\Exceptions\RequestException
      */
-    public function generateShippingLabel(Order $order, Order\Shipment $shipment = null, $parcels = 1, $isReturn = false)
+    public function generateShippingLabel(Order $order, ?Order\Shipment $shipment = null, $parcels = 1, $isReturn = false)
     {
         $includeReturnLabel = $this->dpdSettings->isSetFlag(DpdSettings::ADVANCED_INCLUDE_RETURN_LABEL, ScopeInterface::SCOPE_STORE, $order->getStoreId());
 

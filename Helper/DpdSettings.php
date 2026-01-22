@@ -70,7 +70,7 @@ class DpdSettings extends AbstractHelper
      */
     protected function getConfigValue(
         string $path,
-        string $scopeCode = null,
+        ?string $scopeCode = null,
         string $scopeType = 'store'
     ): ?string
     {
@@ -87,7 +87,7 @@ class DpdSettings extends AbstractHelper
      * @return string|null
      */
     public function getDefaultPackageType(
-        string $scopeCode = null,
+        ?string $scopeCode = null,
         string $scopeType = 'store'
     ): ?string
     {
