@@ -94,12 +94,17 @@ class OrderConvertService extends AbstractHelper
             }
         }
 
-        // Fetch the code from the shipment, if any, else default to the order code
-        if ($shipment && !empty($shipment->hasData(Constants::SHIPMENT_EXTRA_DATA)['code'])) {
-            return $shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'] === '6' ? 'B2C' : $shipment->getData(Constants::SHIPMENT_EXTRA_DATA)['code'];
+        $extraData = $shipment->getData(Constants::SHIPMENT_EXTRA_DATA);
+        $productType = $extraData['productType'] ?? null;
+        $productCode = $extraData['code'] ?? '';
 
+        if ($productType === 'default') {
+            if ($productCode === '6') {
+                return 'B2C';
+            }
+            return empty($productCode) ? 'default' : $productCode;
         }
-
+        
         return $order->getDpdShippingProduct();
     }
 
