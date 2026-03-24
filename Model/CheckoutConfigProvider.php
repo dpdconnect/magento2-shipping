@@ -25,6 +25,7 @@ use DpdConnect\Shipping\Helper\DPDClient;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Framework\Encryption\Encryptor;
 use Magento\Framework\UrlInterface;
+use Psr\Log\LoggerInterface;
 
 class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
 {
@@ -64,6 +65,11 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
     private $localeResolver;
 
     /**
+     * @var LoggerInterface
+     */
+    private $logger;
+
+    /**
      * CheckoutConfigProvider constructor.
      *
      * @param UrlInterface $urlBuilder
@@ -72,6 +78,8 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
      * @param DpdSettings $dpdSettings
      * @param \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig
      * @param \Magento\Checkout\Model\Session $checkoutSession
+     * @param \Magento\Framework\Locale\Resolver $localeResolver
+     * @param LoggerInterface $logger
      */
     public function __construct(
         UrlInterface $urlBuilder,
@@ -80,7 +88,8 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         DpdSettings $dpdSettings,
         \Magento\Framework\App\Config\ScopeConfigInterface $scopeConfig,
         \Magento\Checkout\Model\Session $checkoutSession,
-        \Magento\Framework\Locale\Resolver $localeResolver
+        \Magento\Framework\Locale\Resolver $localeResolver,
+        LoggerInterface $logger
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
@@ -89,6 +98,7 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $this->crypt = $crypt;
         $this->checkoutSession = $checkoutSession;
         $this->localeResolver = $localeResolver;
+        $this->logger = $logger;
     }
 
     /**
@@ -124,7 +134,22 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         $dayOfWeek = date('N');
         $availableShippingProducts = [];
         $shippingProductsConfig = $this->dpdSettings->getDpdCarrierCustomerProductSettings();
-        $shippingProducts = $this->client->authenticate()->getProduct()->getList();
+        try {
+            $shippingProducts = $this->client->authenticate()->getProduct()->getList();
+        } catch (\Exception $exception) {
+            // When DPD API is unreachable, disable DPD shipping methods gracefully
+            // so the rest of the checkout keeps working
+            $this->logger->warning('DPD API unavailable, disabling DPD shipping methods in checkout: ' . $exception->getMessage());
+            $output['dpd_carrier_save_url'] = $this->urlBuilder->getUrl('dpd/carrier/save', ['_secure' => true]);
+            $output['dpd_carrier_available_shipping_products'] = [];
+
+            $locale = $this->localeResolver->getLocale();
+            $localeParts = explode('_', $locale);
+            $languageCode = $localeParts[0];
+            $output['dpd_locale'] = $languageCode;
+
+            return $output;
+        }
         foreach($shippingProducts as $product) {
             // Handle no selected days as all selected
             if (!isset($shippingProductsConfig[$product['code']]['days'])) {

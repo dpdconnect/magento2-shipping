@@ -120,7 +120,11 @@ class OrderService extends AbstractHelper
             return Constants::CARRIER_PARCELSHOP === $this->order->getShippingMethod();
         }
 
-        $availableProducts = $this->DPDClient->authenticate()->getProduct()->getList();
+        try {
+            $availableProducts = $this->DPDClient->authenticate()->getProduct()->getList();
+        } catch (\Exception $e) {
+            return Constants::CARRIER_PARCELSHOP === $this->order->getShippingMethod();
+        }
         $selectedCode = $this->getSelectedCode();
 
         $selectedProduct = null;

@@ -24,6 +24,7 @@ use DpdConnect\Sdk\Objects\ObjectFactory;
 use DpdConnect\Sdk\Objects\MetaData;
 use DpdConnect\Sdk\ClientBuilder;
 use DpdConnect\Sdk\Client;
+use DpdConnect\Sdk\Common\HttpClient;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Encryption\Encryptor;
 use Magento\Framework\App\ProductMetadataInterface;
@@ -91,11 +92,17 @@ class DPDClient extends AbstractHelper
         $pluginVersion = $this->moduleList
             ->getOne(self::MODULE_NAME)['setup_version'];
 
-        $clientBuiler = new ClientBuilder($url, ObjectFactory::create(MetaData::class, [
+        $meta = ObjectFactory::create(MetaData::class, [
             'webshopType' => $this->productMetadata->getName() . ' ' . $this->productMetadata->getEdition(),
             'webshopVersion' => $this->productMetadata->getVersion(),
             'pluginVersion' => $pluginVersion,
-        ]));
+        ]);
+
+        $clientBuiler = new ClientBuilder($url, $meta);
+
+        $endpoint = $clientBuiler->getEndpoint() ?: Client::ENDPOINT;
+        $httpClient = new HttpClient($endpoint, 5, 2);
+        $clientBuiler->setHttpClient($httpClient);
 
         $client = $clientBuiler->buildAuthenticatedByPassword(
             $this->dpdSettings->getValue(DpdSettings::ACCOUNT_USERNAME,ScopeInterface::SCOPE_STORE, $storeId),

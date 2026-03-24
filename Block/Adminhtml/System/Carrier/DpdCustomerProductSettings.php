@@ -88,7 +88,11 @@ class DpdCustomerProductSettings extends Field
      */
     public function getCustomerProducts()
     {
-        $products = $this->DPDClient->authenticate()->getProduct()->getList();
+        try {
+            $products = $this->DPDClient->authenticate()->getProduct()->getList();
+        } catch (\Exception $e) {
+            return [];
+        }
 
         return array_filter($products, function($product) {
             return in_array($product['type'], ['b2b', 'predict']);

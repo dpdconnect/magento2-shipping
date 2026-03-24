@@ -25,21 +25,25 @@ class ShippingType extends \Magento\Eav\Model\Entity\Attribute\Source\AbstractSo
     public function getAllOptions()
     {
         if (!$this->_options) {
-            $availableProducts = $this->client->authenticate()->getProduct()->getList();
-            $availableCodes = array_map(function($product) {
-                return $product['code'];
-            }, $availableProducts);
-
             $this->_options = [
                 ['label' => __('Default'), 'value' => 'default'],
             ];
 
-            if (true === in_array('FRESH', $availableCodes)) {
-                $this->_options[] = ['label' => __('Fresh'), 'value' => 'fresh'];
-            }
+            try {
+                $availableProducts = $this->client->authenticate()->getProduct()->getList();
+                $availableCodes = array_map(function($product) {
+                    return $product['code'];
+                }, $availableProducts);
 
-            if (true === in_array('FREEZE', $availableCodes)) {
-                $this->_options[] = ['label' => __('Freeze'), 'value' => 'freeze'];
+                if (true === in_array('FRESH', $availableCodes)) {
+                    $this->_options[] = ['label' => __('Fresh'), 'value' => 'fresh'];
+                }
+
+                if (true === in_array('FREEZE', $availableCodes)) {
+                    $this->_options[] = ['label' => __('Freeze'), 'value' => 'freeze'];
+                }
+            } catch (\Exception $e) {
+                // DPD API unavailable — return only the default option
             }
         }
 

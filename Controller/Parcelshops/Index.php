@@ -145,7 +145,13 @@ class Index extends \Magento\Framework\App\Action\Action
             'limit' => $this->dpdSettings->getValue(DpdSettings::PARCELSHOP_MAPS_SHOPS)
         ];
 
-        $parcelShops = $this->dpdClient->authenticate()->getParcelshop()->getList($coordinates);
+        try {
+            $parcelShops = $this->dpdClient->authenticate()->getParcelshop()->getList($coordinates);
+        } catch (\Exception $e) {
+            $resultData['success'] = false;
+            $resultData['error_message'] = __('DPD parcelshop service is temporarily unavailable. Please try again later.');
+            return $result->setData($resultData);
+        }
 
         $params = array('_secure' => $this->getRequest()->isSecure());
 
