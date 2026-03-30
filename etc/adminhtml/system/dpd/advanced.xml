@@ -58,7 +58,7 @@
             <label>Save labels as file</label>
             <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
         </field>
-        <field id="label_path" translate="label" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
+        <field id="label_path" translate="label comment" type="text" sortOrder="60" showInDefault="1" showInWebsite="1"
                showInStore="0">
             <label>Store labels in</label>
             <depends>
