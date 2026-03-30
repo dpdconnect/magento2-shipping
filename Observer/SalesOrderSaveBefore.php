@@ -109,7 +109,7 @@ class SalesOrderSaveBefore implements ObserverInterface
             $order->setDpdParcelshopCountry($quote->getData('dpd_parcelshop_country'));
         }
 
-        if ('dpd_dpd' === $order->getShippingMethod()) {
+        if (in_array($order->getShippingMethod(), ['dpd_dpd', 'dpdpickup_dpdpickup'])) {
             $order->setDpdShippingProduct($quote->getData('dpd_shipping_product'));
         }
     }
