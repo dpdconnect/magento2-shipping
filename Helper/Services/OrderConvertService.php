@@ -216,6 +216,11 @@ class OrderConvertService extends AbstractHelper
             if ($unit === 'POUND') {
                 $weight = $weight * 0.45359237;
             }
+	    
+	    if ($unit === 'KILOGRAM') {
+	        // Weight is in KG so multiply with 100		    
+		$weight *= 100;
+            }
 
             $volume = empty($package['params']['package_type'])
                 ? $this->dpdSettings->getDefaultPackageType()
