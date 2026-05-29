@@ -298,7 +298,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
      */
     public function uploadAndImport(\Magento\Framework\DataObject $object)
     {
-        foreach ($_FILES['groups']['tmp_name'] as $key => $value) {
+        foreach ($_FILES['groups']['tmp_name'] ?? [] as $key => $value) {
             // Only process uploaded DPD files
             if (strpos($key, 'dpd') !== 0) {
                 continue;
