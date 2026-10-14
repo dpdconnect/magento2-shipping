@@ -4,7 +4,7 @@
 
 # DPD Connect for Magento 2
 
-![PHP 7.2+](https://img.shields.io/badge/PHP-7.2%2B-777BB4?logo=php&logoColor=white)
+![PHP 8.1+](https://img.shields.io/badge/PHP-8.1%2B-777BB4?logo=php&logoColor=white)
 ![Magento 2.3+](https://img.shields.io/badge/Magento-2.3%2B-EE672F?logo=magento&logoColor=white)
 ![License GPL-3.0](https://img.shields.io/badge/License-GPL--3.0-blue)
 ![Version 1.0.8](https://img.shields.io/badge/Version-1.0.8-brightgreen)
@@ -68,9 +68,9 @@ Generate labels, offer Parcelshop pickup at checkout, and monitor async batches 
 
 | Dependency | Version |
 |---|---|
-| PHP | ≥ 7.2 |
+| PHP | ≥ 8.1 |
 | Magento Framework | ≥ 103.0.6 (Magento 2.3+) |
-| `dpdconnect/php-sdk` | ^1.1 |
+| `dpdconnect/php-sdk` | ^2.1 |
 | Google Maps API key | Required for Parcelshop pickup |
 
 ---

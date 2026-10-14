@@ -607,7 +607,7 @@ class Tablerate extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         if (!is_numeric($value)) {
             return false;
         }
-        $value = (double)sprintf('%.4F', $value);
+        $value = (float)sprintf('%.4F', $value);
         if ($value < 0.0000) {
             return false;
         }
