@@ -30,7 +30,10 @@ use Magento\Backend\App\Action\Context;
 use Magento\Ui\Component\MassAction\Filter;
 use Magento\Sales\Model\Order;
 use Magento\Framework\View\Result\PageFactory;
-use \DpdConnect\Shipping\Model\ShipmentLabelFactory;
+use Magento\Framework\Serialize\Serializer\Serialize;
+use InvalidArgumentException;
+use DpdConnect\Shipping\Model\ResourceModel\ShipmentLabel\CollectionFactory as ShipmentLabelCollectionFactory;
+use DpdConnect\Shipping\Block\Adminhtml\Order\PrintShippingList as PrintShippingListBlock;
 use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
 
 class PrintShippingList extends \Magento\Backend\App\Action
@@ -61,9 +64,9 @@ class PrintShippingList extends \Magento\Backend\App\Action
     protected $predictService;
 
     /**
-     * @var \DpdConnect\Shipping\Model\ShipmentLabelFactory
+     * @var ShipmentLabelCollectionFactory
      */
-    private $shipmentLabelFactory;
+    private $shipmentLabelCollectionFactory;
     /**
      * @var DpdSettings
      */
@@ -74,7 +77,7 @@ class PrintShippingList extends \Magento\Backend\App\Action
      * @param Filter $filter
      * @param OrderCollectionFactory $collectionFactory
      * @param \DpdConnect\Shipping\Helper\Data $dataHelper
-     * @param ShipmentLabelFactory $shipmentLabelFactory
+     * @param ShipmentLabelCollectionFactory $shipmentLabelCollectionFactory
      * @param PageFactory $pageFactory
      * @param ShipmentLabelService $predictService
      * @param DpdSettings $dpdSettings
@@ -84,22 +87,26 @@ class PrintShippingList extends \Magento\Backend\App\Action
         Filter $filter,
         OrderCollectionFactory $collectionFactory,
         \DpdConnect\Shipping\Helper\Data $dataHelper,
-        ShipmentLabelFactory $shipmentLabelFactory,
+        ShipmentLabelCollectionFactory $shipmentLabelCollectionFactory,
         PageFactory $pageFactory,
         ShipmentLabelService $predictService,
-        DpdSettings $dpdSettings
+        DpdSettings $dpdSettings,
+        private readonly Serialize $serializer
     ) {
         $this->filter = $filter;
         $this->collectionFactory = $collectionFactory;
         $this->dataHelper = $dataHelper;
         $this->resultPageFactory = $pageFactory;
-        $this->shipmentLabelFactory = $shipmentLabelFactory;
+        $this->shipmentLabelCollectionFactory = $shipmentLabelCollectionFactory;
         $this->predictService = $predictService;
 
         parent::__construct($context);
         $this->dpdSettings = $dpdSettings;
     }
 
+    /**
+     * @return ResultInterface|ResponseInterface
+     */
     public function execute()
     {
         try {
@@ -115,15 +122,14 @@ class PrintShippingList extends \Magento\Backend\App\Action
                     continue;
                 }
 
-                $shipmentLabels = $this->shipmentLabelFactory->create()
-                    ->getCollection()
+                $shipmentLabels = $this->shipmentLabelCollectionFactory->create()
                     ->addFieldToFilter('order_id', ["eq", $order->getId()])
                     ->addFieldToFilter('is_return', ["eq", '0']);
 
                 foreach ($shipmentLabels as $shipmentLabel) {
                     $parcelNumbers = [];
                     if($this->isSerialized($shipmentLabel->getLabelNumbers())) {
-                        $parcelNumbers = unserialize($shipmentLabel->getLabelNumbers());
+                        $parcelNumbers = $this->serializer->unserialize($shipmentLabel->getLabelNumbers());
                     }
                     foreach ($parcelNumbers as $parcelData) {
 
@@ -146,8 +152,11 @@ class PrintShippingList extends \Magento\Backend\App\Action
             }
 
             $resultPage = $this->resultPageFactory->create();
-            $blockInstance = $resultPage->getLayout()->createBlock(\DpdConnect\Shipping\Block\Adminhtml\Order\PrintShippingList::class);
-            $blockInstance->setTemplate("DpdConnect_Shipping::printshippinglist.phtml");
+            $blockInstance = $resultPage->getLayout()->createBlock(
+                PrintShippingListBlock::class,
+                '',
+                ['data' => ['template' => 'DpdConnect_Shipping::printshippinglist.phtml']]
+            );
 
             $blockInstance->assign([
                 'sender' => [
@@ -167,7 +176,8 @@ class PrintShippingList extends \Magento\Backend\App\Action
                 'orders' => $orders
             ]);
 
-            echo $blockInstance->toHtml();
+            $this->getResponse()->appendBody($blockInstance->toHtml());
+            return $this->getResponse();
         } catch (\Exception $e) {
             $this->messageManager->addErrorMessage($e->getMessage());
             return $this->_redirect($this->_redirect->getRefererUrl());
@@ -179,7 +189,11 @@ class PrintShippingList extends \Magento\Backend\App\Action
      * @param string $string
      */
     private function isSerialized($string) {
-        return (@unserialize($string) !== false);
+        try {
+            return $this->serializer->unserialize($string) !== false;
+        } catch (InvalidArgumentException $e) {
+            return false;
+        }
     }
 
     /**

@@ -219,8 +219,11 @@ class Index extends \Magento\Framework\App\Action\Action
             'weekday'              => $weekday
         ];
 
-        $block = $layout->createBlock(Template::class)
-            ->setTemplate('DpdConnect_Shipping::checkout/shipping/parcelshop-opening-hours.phtml')
+        $block = $layout->createBlock(
+            Template::class,
+            '',
+            ['data' => ['template' => 'DpdConnect_Shipping::checkout/shipping/parcelshop-opening-hours.phtml']]
+        )
             ->setData('openingHours', $openingHoursData);
 
         return $block->toHtml();
@@ -267,8 +270,11 @@ class Index extends \Magento\Framework\App\Action\Action
             'image'            => $image,
             'openingHoursHtml' => $openingHoursHtml
         ];
-        $block = $layout->createBlock(Template::class)
-            ->setTemplate('DpdConnect_Shipping::checkout/shipping/parcelshop-marker.phtml')
+        $block = $layout->createBlock(
+            Template::class,
+            '',
+            ['data' => ['template' => 'DpdConnect_Shipping::checkout/shipping/parcelshop-marker.phtml']]
+        )
             ->setData('markerParams', $parcelShopData);
 
         return $block->toHtml();
