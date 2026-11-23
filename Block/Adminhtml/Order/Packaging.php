@@ -6,7 +6,6 @@ use DpdConnect\Sdk\Exceptions\DpdException;
 use DpdConnect\Shipping\Helper\Data;
 use DpdConnect\Shipping\Helper\DPDClient;
 use Magento\Sales\Model\Order;
-use Magento\Shipping\Helper\Carrier;
 use DpdConnect\Shipping\Model\Attribute\Source\DefaultPackageTypeOptions;
 
 /**
@@ -35,9 +34,8 @@ class Packaging extends \Magento\Shipping\Block\Adminhtml\Order\Packaging
      * @param \Magento\Framework\Registry $coreRegistry
      * @param \Magento\Shipping\Model\CarrierFactory $carrierFactory
      * @param array $data
-     * @param Carrier|null $carrierHelper
      */
-    public function __construct(DefaultPackageTypeOptions $defaultPackageTypeOptions, Data $dataHelper, DpdClient $client, \Magento\Backend\Block\Template\Context $context, \Magento\Framework\Json\EncoderInterface $jsonEncoder, \Magento\Shipping\Model\Carrier\Source\GenericInterface $sourceSizeModel, \Magento\Framework\Registry $coreRegistry, \Magento\Shipping\Model\CarrierFactory $carrierFactory, array $data = [], ?Carrier $carrierHelper = null)
+    public function __construct(DefaultPackageTypeOptions $defaultPackageTypeOptions, Data $dataHelper, DpdClient $client, \Magento\Backend\Block\Template\Context $context, \Magento\Framework\Json\EncoderInterface $jsonEncoder, \Magento\Shipping\Model\Carrier\Source\GenericInterface $sourceSizeModel, \Magento\Framework\Registry $coreRegistry, \Magento\Shipping\Model\CarrierFactory $carrierFactory, array $data = [])
     {
         parent::__construct($context, $jsonEncoder, $sourceSizeModel, $coreRegistry, $carrierFactory, $data);
         $this->defaultPackageTypeOptions = $defaultPackageTypeOptions;
@@ -78,7 +76,7 @@ class Packaging extends \Magento\Shipping\Block\Adminhtml\Order\Packaging
     public function isSelected(array $shippingProduct): bool
     {
         $order = $this->getOrder();
-        if ($this->isParcelshopOrder($order) && 'parcelshop' === $shippingProduct['type']) {
+        if ($this->isParcelshopOrder() && 'parcelshop' === $shippingProduct['type']) {
             return true;
         }
 
@@ -110,7 +108,7 @@ class Packaging extends \Magento\Shipping\Block\Adminhtml\Order\Packaging
         $availableProducts = [];
         $shippingProducts = $this->client->authenticate($order->getStoreId())->getProduct()->getList();
         foreach ($shippingProducts as $shippingProduct) {
-            if ('parcelshop' === $shippingProduct['type'] && !$this->isParcelshopOrder($order)) {
+            if ('parcelshop' === $shippingProduct['type'] && !$this->isParcelshopOrder()) {
                 continue;
             }
 

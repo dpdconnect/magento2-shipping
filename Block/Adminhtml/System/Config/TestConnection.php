@@ -15,17 +15,9 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 class TestConnection extends \Magento\Config\Block\System\Config\Form\Field
 {
     /**
-     * Set template to itself
-     *
-     * @return $this
-     * @since 100.1.0
+     * @var string
      */
-    protected function _prepareLayout()
-    {
-        parent::_prepareLayout();
-        $this->setTemplate('DpdConnect_Shipping::system/config/testconnection.phtml');
-        return $this;
-    }
+    protected $_template = 'DpdConnect_Shipping::system/config/testconnection.phtml';
 
     /**
      * Unset some non-related element parameters

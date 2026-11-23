@@ -3,6 +3,8 @@
 namespace DpdConnect\Shipping\Model;
 
 use DpdConnect\Shipping\Api\ApiCallbackInterface;
+use DpdConnect\Shipping\Model\ResourceModel\Batch as BatchResource;
+use DpdConnect\Shipping\Model\ResourceModel\BatchJob as BatchJobResource;
 use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
 use DpdConnect\Shipping\Services\BatchManager;
 use DpdConnect\Shipping\Services\ShipmentManager;
@@ -40,7 +42,9 @@ class ApiCallback implements ApiCallbackInterface
         BatchManager $batchManager,
         OrderCollectionFactory $orderCollectionFactory,
         ShipmentLabelService $shipmentLabelService,
-        ShipmentManager $shipmentManager
+        ShipmentManager $shipmentManager,
+        private readonly BatchResource $batchResource,
+        private readonly BatchJobResource $batchJobResource
     ) {
         $this->batchManager = $batchManager;
         $this->orderCollectionFactory = $orderCollectionFactory;
@@ -91,8 +95,8 @@ class ApiCallback implements ApiCallbackInterface
         if (count($errors) > 0) {
             $batch->setStatus(BatchManager::STATUS_FAILED);
             $job->setStatus(BatchManager::STATUS_FAILED);
-            $batch->getResource()->save($batch);
-            $job->getResource()->save($job);
+            $this->batchResource->save($batch);
+            $this->batchJobResource->save($job);
             return;
         }
 
@@ -103,8 +107,8 @@ class ApiCallback implements ApiCallbackInterface
 
         $job->setStatus(BatchManager::STATUS_SUCCESS);
         $batch->setStatus(BatchManager::STATUS_SUCCESS);
-        $batch->getResource()->save($batch);
-        $job->getResource()->save($job);
+        $this->batchResource->save($batch);
+        $this->batchJobResource->save($job);
         return;
     }
 }

@@ -5,6 +5,8 @@
  */
 namespace DpdConnect\Shipping\Block\Adminhtml\Order\Packaging;
 
+use Magento\Sales\Model\ResourceModel\Order\Shipment\Item\CollectionFactory as ShipmentItemCollectionFactory;
+
 class Grid extends \Magento\Backend\Block\Template
 {
     /**
@@ -20,23 +22,23 @@ class Grid extends \Magento\Backend\Block\Template
     protected $_coreRegistry = null;
 
     /**
-     * @var \Magento\Sales\Model\Order\Shipment\ItemFactory
+     * @var ShipmentItemCollectionFactory
      */
-    protected $_shipmentItemFactory;
+    protected $_shipmentItemCollectionFactory;
 
     /**
      * @param \Magento\Backend\Block\Template\Context $context
-     * @param \Magento\Sales\Model\Order\Shipment\ItemFactory $shipmentItemFactory
+     * @param ShipmentItemCollectionFactory $shipmentItemCollectionFactory
      * @param \Magento\Framework\Registry $registry
      * @param array $data
      */
     public function __construct(
         \Magento\Backend\Block\Template\Context $context,
-        \Magento\Sales\Model\Order\Shipment\ItemFactory $shipmentItemFactory,
+        ShipmentItemCollectionFactory $shipmentItemCollectionFactory,
         \Magento\Framework\Registry $registry,
         array $data = []
     ) {
-        $this->_shipmentItemFactory = $shipmentItemFactory;
+        $this->_shipmentItemCollectionFactory = $shipmentItemCollectionFactory;
         $this->_coreRegistry = $registry;
         parent::__construct($context, $data);
     }
@@ -49,7 +51,7 @@ class Grid extends \Magento\Backend\Block\Template
     public function getCollection()
     {
         if ($this->getShipment()->getId()) {
-            $collection = $this->_shipmentItemFactory->create()->getCollection()->setShipmentFilter(
+            $collection = $this->_shipmentItemCollectionFactory->create()->setShipmentFilter(
                 $this->getShipment()->getId()
             );
         } else {

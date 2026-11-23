@@ -21,9 +21,7 @@ namespace DpdConnect\Shipping\Helper\Services;
 
 use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\DpdSettings;
-use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\App\Helper\AbstractHelper;
-use DpdConnect\Shipping\Helper\DPDClient;
 use Magento\Framework\App\Helper\Context;
 use Magento\Sales\Api\Data\OrderAddressInterface;
 use Magento\Sales\Model\Order;
@@ -46,17 +44,13 @@ class OrderConvertService extends AbstractHelper
     /**
      * OrderConvertService constructor.
      * @param Context $context
-     * @param DPDClient $DPDClient
      * @param OrderService $orderService
      * @param DpdSettings $dpdSettings
-     * @param ProductFactory $productFactory
      */
     public function __construct(
         Context $context,
-        DPDClient $DPDClient,
         OrderService $orderService,
         DpdSettings $dpdSettings,
-        ProductFactory $productFactory,
         LoggerInterface $logger
     ) {
         parent::__construct($context);

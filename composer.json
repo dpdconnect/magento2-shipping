@@ -32,7 +32,11 @@
     },
     "require-dev": {
         "magento/marketplace-eqp": "^2.0",
-        "overtrue/phplint": "^9.0"
+        "overtrue/phplint": "^9.0",
+        "magento/magento-coding-standard": "^41",
+        "phpstan/phpstan": "^2.1",
+        "bitexpert/phpstan-magento": "^0.44",
+        "phpstan/extension-installer": "^1.4"
     },
     "repositories": {
         "magento": {
@@ -43,7 +47,8 @@
     "config": {
         "allow-plugins": {
             "dealerdirect/phpcodesniffer-composer-installer": true,
-            "magento/composer-dependency-version-audit-plugin": false
+            "magento/composer-dependency-version-audit-plugin": false,
+            "phpstan/extension-installer": true
         }
     }
 }

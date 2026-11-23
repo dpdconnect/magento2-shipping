@@ -7,6 +7,8 @@ use DpdConnect\Shipping\Model\Batch;
 use DpdConnect\Shipping\Model\BatchFactory;
 use DpdConnect\Shipping\Model\BatchJob;
 use DpdConnect\Shipping\Model\BatchJobFactory;
+use DpdConnect\Shipping\Model\ResourceModel\Batch as BatchResource;
+use DpdConnect\Shipping\Model\ResourceModel\BatchJob as BatchJobResource;
 use DpdConnect\Shipping\Model\ResourceModel\Batch\CollectionFactory as BatchCollectionFactory;
 use DpdConnect\Shipping\Model\ResourceModel\BatchJob\CollectionFactory as BatchJobCollectionFactory;
 use Magento\Sales\Api\Data\OrderInterface;
@@ -52,7 +54,9 @@ class BatchManager
         BatchJobFactory $batchJobFactory,
         ShipmentLabelService $shipmentLabelService,
         BatchJobCollectionFactory $batchJobCollectionFactory,
-        BatchCollectionFactory $batchCollectionFactory
+        BatchCollectionFactory $batchCollectionFactory,
+        private readonly BatchResource $batchResource,
+        private readonly BatchJobResource $batchJobResource
     ) {
         $this->batchFactory = $batchFactory;
         $this->batchJobFactory = $batchJobFactory;
@@ -65,7 +69,7 @@ class BatchManager
     {
         $batch = $this->batchFactory->create();
         $batch->setStatus(self::STATUS_QUEUED);
-        $batch->getResource()->save($batch);
+        $this->batchResource->save($batch);
         return $batch;
     }
 
@@ -75,7 +79,7 @@ class BatchManager
         $job->setBatchId($batch->getEntityId());
         $job->setJobId($jobId);
         $job->setStatus(self::STATUS_QUEUED);
-        $job->getResource()->save($job);
+        $this->batchJobResource->save($job);
         return $job;
     }
 
@@ -100,7 +104,9 @@ class BatchManager
      */
     public function getBatchById($batchId)
     {
-        return $this->batchFactory->create()->load($batchId);
+        $batch = $this->batchFactory->create();
+        $this->batchResource->load($batch, $batchId);
+        return $batch;
     }
 
     /**

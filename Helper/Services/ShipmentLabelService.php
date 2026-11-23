@@ -24,12 +24,14 @@ use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\DPDClient;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use DpdConnect\Shipping\Model\ShipmentLabelFactory;
+use DpdConnect\Shipping\Model\ResourceModel\ShipmentLabel as ShipmentLabelResource;
 use DpdConnect\Shipping\Services\ShipmentManager;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Filesystem\Io\File;
 use Magento\Framework\Url;
+use Magento\Framework\Serialize\Serializer\Serialize;
 use Magento\Sales\Model\Order;
 use Magento\Store\Model\ScopeInterface;
 
@@ -98,7 +100,9 @@ class ShipmentLabelService extends AbstractHelper
         ShipmentManager $shipmentManager,
         DirectoryList $directoryList,
         File $filesystem,
-        Url $urlHelper
+        Url $urlHelper,
+        private readonly ShipmentLabelResource $shipmentLabelResource,
+        private readonly Serialize $serializer
     ) {
         $this->shipmentLabelFactory = $shipmentLabelFactory;
         $this->dpdClient = $DPDClient;
@@ -134,7 +138,7 @@ class ShipmentLabelService extends AbstractHelper
         $shipmentLabel->setShipmentId($shipment->getId());
         $shipmentLabel->setShipmentIncrementId($shipment->getIncrementId());
         $shipmentLabel->setCarrierCode($order->getShippingMethod());
-        $shipmentLabel->setLabelNumbers(serialize($parcelNumbers));
+        $shipmentLabel->setLabelNumbers($this->serializer->serialize($parcelNumbers));
         $shipmentLabel->setMpsId($shipmentIdentifier);
 
         if (!$saveLabelAsFile) {
@@ -144,7 +148,7 @@ class ShipmentLabelService extends AbstractHelper
         }
 
         $shipmentLabel->setIsReturn($isReturn);
-        $shipmentLabel->save();
+        $this->shipmentLabelResource->save($shipmentLabel);
 
         // Write file to a directory
         if ($saveLabelAsFile) {

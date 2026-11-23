@@ -22,7 +22,6 @@ namespace DpdConnect\Shipping\Controller\Adminhtml\Order;
 use DpdConnect\Shipping\Helper\Constants;
 use DpdConnect\Shipping\Helper\Data;
 use DpdConnect\Shipping\Helper\DpdSettings;
-use DpdConnect\Shipping\Helper\Services\ShipmentLabelService;
 use DpdConnect\Shipping\Model\ShipmentLabelFactory;
 use DpdConnect\Shipping\Services\BatchManager;
 use Magento\Backend\App\Action;
@@ -84,7 +83,6 @@ class CreateShipment extends Action
      * @param FileFactory                                 $fileFactory
      * @param DpdSettings                                 $dpdSettings
      * @param BatchManager                                $batchManager
-     * @param ShipmentLabelService                        $shipmentLabelService
      * @param \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
      */
     public function __construct(
@@ -96,7 +94,6 @@ class CreateShipment extends Action
         FileFactory $fileFactory,
         DpdSettings $dpdSettings,
         BatchManager $batchManager,
-        ShipmentLabelService $shipmentLabelService,
         \Magento\Sales\Api\OrderRepositoryInterface $orderRepository
     ) {
         $this->filter = $filter;

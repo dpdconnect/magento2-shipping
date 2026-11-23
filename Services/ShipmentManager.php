@@ -9,6 +9,7 @@ use Magento\Sales\Model\Convert\Order as OrderConvert;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\Order\Shipment;
 use Magento\Sales\Model\Order\Shipment\TrackFactory;
+use Magento\Sales\Model\ResourceModel\Order\Shipment\Track as TrackResource;
 use Magento\Store\Model\ScopeInterface;
 
 class ShipmentManager
@@ -41,7 +42,8 @@ class ShipmentManager
         OrderConvert $orderConvert,
         TransactionFactory $transactionFactory,
         DpdSettings $dpdSettings,
-        TrackFactory $trackFactory
+        TrackFactory $trackFactory,
+        private readonly TrackResource $trackResource
     ) {
         $this->orderConvert = $orderConvert;
         $this->transactionFactory = $transactionFactory;
@@ -138,7 +140,7 @@ class ShipmentManager
                 $track->setNumber($parcelNumber);
                 $track->setCarrierCode($carrierCode);
                 $track->setOrderId($shipment->getOrderId());
-                $track->getResource()->save($track);
+                $this->trackResource->save($track);
             }
         }
     }

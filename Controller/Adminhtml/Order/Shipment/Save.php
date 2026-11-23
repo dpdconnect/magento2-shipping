@@ -215,6 +215,8 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
                 if (!empty($data['send_email'])) {
                     $this->shipmentSender->send($shipment);
                 }
+
+                $resultRedirect->setPath('sales/order/view', ['order_id' => $shipment->getOrderId()]);
             }
 
             $shipmentCreatedMessage = __('The shipment has been created.');
@@ -246,6 +248,6 @@ class Save extends \Magento\Backend\App\Action implements HttpPostActionInterfac
             return $this->resultFactory->create(ResultFactory::TYPE_JSON)->setJsonData($responseAjax->toJson());
         }
 
-        return $resultRedirect->setPath('sales/order/view', ['order_id' => $shipment->getOrderId()]);
+        return $resultRedirect;
     }
 }

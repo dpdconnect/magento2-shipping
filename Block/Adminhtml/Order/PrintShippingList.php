@@ -25,8 +25,8 @@ use Magento\Framework\View\Element\Template\Context;
 
 class PrintShippingList extends Template
 {
-    public function __construct(Context $context)
+    public function __construct(Context $context, array $data = [])
     {
-        parent::__construct($context);
+        parent::__construct($context, $data);
     }
 }
