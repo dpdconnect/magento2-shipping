@@ -114,7 +114,7 @@ class DPDClient extends AbstractHelper
         );
 
         // This is where we save the (new) JWT token to the cache
-        $client->getAuthentication()->setTokenUpdateCallback(function (string $jwtToken) use ($client) {
+        $client->getAuthentication()->setTokenUpdateCallback(function (string $jwtToken) use ($client, $storeId) {
             $this->dpdCache->setCache('dpdconnect_jwt_token_' . ($storeId ?? 0), $jwtToken, 7200);
             $client->getAuthentication()->setJwtToken($jwtToken);
         });
