@@ -3,6 +3,7 @@
 namespace DpdConnect\Shipping\Controller\Adminhtml\Label;
 
 use DpdConnect\Shipping\Model\ShipmentLabelFactory;
+use DpdConnect\Shipping\Model\ResourceModel\ShipmentLabel as ShipmentLabelResource;
 use Magento\Backend\App\Action;
 use Magento\Backend\App\Action\Context;
 use Magento\Framework\App\Filesystem\DirectoryList;
@@ -37,7 +38,8 @@ class Download extends Action
         Context $context,
         ShipmentLabelFactory $shipmentLabelFactory,
         FileFactory $fileFactory,
-        File $filesystem
+        File $filesystem,
+        private readonly ShipmentLabelResource $shipmentLabelResource
     ) {
         parent::__construct($context);
         $this->shipmentLabelFactory = $shipmentLabelFactory;
@@ -56,7 +58,7 @@ class Download extends Action
     {
         $entityId = $this->getRequest()->getParam('entity_id');
         $shipmentLabel = $this->shipmentLabelFactory->create();
-        $shipmentLabel->load($entityId);
+        $this->shipmentLabelResource->load($shipmentLabel, $entityId);
 
         if ($shipmentLabel->getLabel() == '') {
             $content = $this->filesystem->read($shipmentLabel->getLabelPath());

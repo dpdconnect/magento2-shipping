@@ -25,6 +25,7 @@ use DpdConnect\Shipping\Helper\DPDClient;
 use DpdConnect\Shipping\Helper\DpdSettings;
 use Magento\Framework\Encryption\Encryptor;
 use Magento\Framework\UrlInterface;
+use Magento\Quote\Model\ResourceModel\Quote as QuoteResource;
 use Psr\Log\LoggerInterface;
 
 class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderInterface
@@ -90,6 +91,7 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
         \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Framework\Locale\Resolver $localeResolver,
         LoggerInterface $logger,
+        private readonly QuoteResource $quoteResource,
     ) {
         $this->urlBuilder = $urlBuilder;
         $this->scopeConfig = $scopeConfig;
@@ -188,7 +190,7 @@ class CheckoutConfigProvider implements \Magento\Checkout\Model\ConfigProviderIn
             }
 
             $quote->setDpdShippingProduct($cheapest['code']);
-            $quote->save();
+            $this->quoteResource->save($quote);
 
             $output['dpd_carrier_shipping_selected_product'] = $cheapest['code'];
         }
