@@ -55,6 +55,7 @@ class DpdSettings extends AbstractHelper
     const API_ASYNC_THRESHOLD = 'dpdshipping/api/async_threshold';
 
     const PARCELSHOP_MAPS_USE_DPD_KEY = 'carriers/dpdpickup/use_dpd_maps_key';
+    const PARCELSHOP_MAPS_SERVER_KEY = 'carriers/dpdpickup/google_maps_api_server';
     const PARCELSHOP_MAPS_CLIENT_KEY = 'carriers/dpdpickup/google_maps_api_client';
     const PARCELSHOP_MAPS_WIDTH = 'carriers/dpdpickup/map_width';
     const PARCELSHOP_MAPS_HEIGHT = 'carriers/dpdpickup/map_height';
