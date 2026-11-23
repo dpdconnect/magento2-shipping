@@ -19,10 +19,13 @@
  */
 namespace DpdConnect\Shipping\Model;
 
-class Tablerate extends \Magento\OfflineShipping\Model\Carrier\Tablerate
+use Magento\Framework\Model\AbstractModel;
+use DpdConnect\Shipping\Model\ResourceModel\Tablerate as TablerateResource;
+
+class Tablerate extends AbstractModel
 {
     protected function _construct()
     {
-        $this->_init('dpdconnect_shipping_tablerate', 'entity_id');
+        $this->_init(TablerateResource::class);
     }
 }
