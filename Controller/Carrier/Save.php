@@ -51,7 +51,7 @@ class Save extends \Magento\Framework\App\Action\Action
     /**
      * Execute view action
      *
-     * @return \Magento\Framework\Controller\ResultInterface
+     * @return void
      */
     public function execute()
     {
